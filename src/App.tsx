@@ -1,21 +1,13 @@
-import './App.css';
-import React, { JSX } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
-import Home from './pages/Home';
+import React from 'react';
+import AppRouter from './routes/AppRouter';
+import { Link } from 'react-router-dom';
 
-
-function App(): JSX.Element {
+const App: React.FC = () => {
   return (
-    <div>
-      <nav>
-        <Link to="/">Home</Link> |{' '}
-      </nav>
-
-      <Routes>
-        <Route path="/" element={<Home />} />
-      </Routes>
-    </div>
-  );
-}
+    <><nav>
+      <Link to="/">Home</Link>
+    </nav>
+    <AppRouter /></>);
+};
 
 export default App;
