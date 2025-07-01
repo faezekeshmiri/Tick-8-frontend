@@ -1,13 +1,13 @@
 import React from 'react';
 import AppRouter from './routes/AppRouter';
-import { Link } from 'react-router-dom';
+import MainLayout from "./layouts/MainLayout";
 
 const App: React.FC = () => {
   return (
-    <><nav>
-      <Link to="/">Home</Link>
-    </nav>
-    <AppRouter /></>);
+    <MainLayout direction="ltr">
+      <AppRouter />
+    </MainLayout>
+  );
 };
 
 export default App;
