@@ -1,17 +1,24 @@
 import React, { ReactNode, useEffect, useState } from "react";
-import { Box, CssBaseline, Paper } from "@mui/material";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { AppBar, Box, Paper, Toolbar, Typography } from "@mui/material";
+import { createTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
+
 import clsx from "clsx";
+import Sidebar from "../components/Sidebar/Sidebar";
 
 interface MainLayoutProps {
   children: ReactNode;
   direction?: "ltr" | "rtl";
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children, direction = "ltr" }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({
+  children,
+  direction = "ltr",
+}) => {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const [dir, setDir] = useState<"ltr" | "rtl">(direction);
+  const HEADER_HEIGHT = 64;
+  const FOOTER_HEIGHT = 48;
 
   // Material UI theme
   const theme = React.useMemo(
@@ -31,28 +38,37 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, direction = "ltr" }) 
   }, [dir]);
 
   return (
-    <Box
-      className={clsx(
-        "min-h-screen flex flex-col",
-        dir === "rtl" ? "text-right" : "text-left"
-      )}
-    >
+    <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* Header */}
-      <header className="w-full p-4 bg-blue-600 text-white text-xl shadow-md">
-        <Paper>
-          <h1>Theme test</h1>
-        </Paper>
-      </header>
+      <AppBar position="static" sx={{ height: HEADER_HEIGHT }}>
+        <Toolbar>
+          <Typography variant="h6" component="div">
+            My App
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-      {/* Main Content */}
-      <main className="flex-1 p-4">
-        {children}
-      </main>
+      {/* Body with Sidebar + Content */}
+      <Box sx={{ flex: 1, display: "flex", flexDirection: "row" }}>
+        <Sidebar />
+        <Box component="main" sx={{ flexGrow: 1, p: 2 }}>
+          {children}
+        </Box>
+      </Box>
 
-      {/* Footer (optional) */}
-      <footer className="w-full p-4 bg-gray-200 text-center">
-        &copy; 2025 Tick-8
-      </footer>
+      {/* Footer */}
+      <Box
+        component="footer"
+        sx={{
+          height: FOOTER_HEIGHT,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          bgcolor: "grey.100",
+        }}
+      >
+        <Typography variant="body2">© 2025 Your App</Typography>
+      </Box>
     </Box>
   );
 };
