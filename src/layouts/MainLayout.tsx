@@ -2,6 +2,9 @@ import React, { ReactNode, useEffect, useState } from "react";
 import { AppBar, Box, Paper, Toolbar, Typography } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
+import HomeIcon from "@mui/icons-material/Home";
+import SettingsIcon from "@mui/icons-material/Settings";
+import InfoIcon from "@mui/icons-material/Info";
 
 import clsx from "clsx";
 import Sidebar from "../components/Sidebar/Sidebar";
@@ -50,7 +53,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
       {/* Body with Sidebar + Content */}
       <Box sx={{ flex: 1, display: "flex", flexDirection: "row" }}>
-        <Sidebar />
+        <Sidebar
+          items={[
+            { icon: <HomeIcon />, title: "Home", submenuItems: [
+              { label: "Dashboard", onClick: () => console.log("Dashboard") },
+              { label: "Reports", onClick: () => console.log("Reports") },
+            ] },
+            { icon: <SettingsIcon />, title: "Settings" },
+            { icon: <InfoIcon />, title: "About", submenuItems: [
+              { label: "Dashboard", onClick: () => console.log("Dashboard") },
+              { label: "Reports", onClick: () => console.log("Reports") },
+            ] },
+          ]}
+        />
         <Box component="main" sx={{ flexGrow: 1, p: 2 }}>
           {children}
         </Box>
