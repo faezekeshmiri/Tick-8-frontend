@@ -32,13 +32,19 @@ const SidebarSubmenu: React.FC<SidebarSubmenuProps> = ({
   onClose,
 }) => {
   const theme = useTheme();
-  const offsetX = theme.direction === "rtl" ? -8 : 8;
+  const offsetX = theme.direction === "rtl" ? 5 : -5;
   const offsetY = anchorEl?.offsetHeight ? anchorEl.offsetHeight / 2 : 0;
 
   return (
     <Popper
       open={open}
       anchorEl={anchorEl}
+      // onMouseEnter={() => {
+      //   // Prevent closing when hovering over the submenu
+      //   if (anchorEl) {
+      //     anchorEl.onmouseleave = null;
+      //   }
+      // }}
       placement="right-start"
       transition
       disablePortal

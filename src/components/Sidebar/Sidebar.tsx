@@ -19,7 +19,7 @@ type SidebarProps = {
 
 const Sidebar: React.FC<SidebarProps> = ({ items }) => {
   const theme = useTheme();
-  const [isHovered, setIsHovered] = useState(false);
+  // const [isHovered, setIsHovered] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [submenuItems, setSubmenuItems] = useState<SubmenuItem[]>([]);
   const [submenuOpen, setSubmenuOpen] = useState(false);
@@ -37,18 +37,21 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
   };
 
   const handleClose = () => {
-    setSubmenuOpen(false);
-    setAnchorEl(null);
+    setTimeout(() => {
+      // Delay closing to allow submenu to render
+      setSubmenuOpen(false);
+      setAnchorEl(null);
+    }
+    , 300);
+   
   };
-
+  // Todo: fix closing submenu when moving out of the sidebar item bur not the sidebar itself
   return (
     <>
       <Drawer
         variant="permanent"
         color="primary"
         anchor={theme.direction === "rtl" ? "right" : "left"}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         sx={{
           // width: drawerWidth,
           flexShrink: 0,
@@ -67,14 +70,21 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
         <List>
           {items.map((item, index) => (
             <ListItem key={index} disablePadding>
-              <Tooltip title={item.title} placement="right">
                 <ListItemButton
                   disableRipple
                   sx={{
+                    paddingY: 0.5,
+                    marginY: 1,
                     "&:hover": {
                       backgroundColor: "transparent",
                     },
                   }}
+                  onMouseEnter={(e) =>
+                    handleMouseEnter(e, item.submenuItems || [], item.title)
+                  }
+                  onClick={(e) =>
+                    handleMouseEnter(e, item.submenuItems || [], item.title)
+                  }
                 >
                   <IconButton
                     color="primary"
@@ -93,14 +103,10 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
                         bgcolor: "primary.light",
                       },
                     }}
-                    onMouseEnter={(e) =>
-                      handleMouseEnter(e, item.submenuItems || [], item.title)
-                    }
                   >
                     {item.icon}
                   </IconButton>
                 </ListItemButton>
-              </Tooltip>
             </ListItem>
           ))}
         </List>
