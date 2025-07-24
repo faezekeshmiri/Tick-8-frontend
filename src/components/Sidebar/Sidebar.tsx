@@ -6,7 +6,6 @@ import {
   List,
   ListItem,
   ListItemButton,
-  Tooltip,
   useTheme,
 } from "@mui/material";
 
@@ -24,6 +23,11 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
   const [submenuItems, setSubmenuItems] = useState<SubmenuItem[]>([]);
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const [submenuTitle, setSubmenuTitle] = useState("");
+  const drawerWidth = {
+    xs: 76,  // extra small (mobile)
+    sm: 80,  // small (tablets)
+    md: 72,  // medium (desktops)
+  };
 
   const handleMouseEnter = (
     event: React.MouseEvent<HTMLElement>,
@@ -45,7 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
     , 300);
    
   };
-  // Todo: fix closing submenu when moving out of the sidebar item bur not the sidebar itself
+  // Todo: fix closing submenu when moving out of the sidebar item but not the sidebar itself
   return (
     <>
       <Drawer
@@ -56,6 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
           // width: drawerWidth,
           flexShrink: 0,
           "& .MuiDrawer-paper": {
+            // width: drawerWidth,
             height: "100%", // Important: only take parent height
             top: "auto", // Cancel fixed top positioning
             bottom: "auto", // Cancel fixed bottom positioning
@@ -90,8 +95,8 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
                     color="primary"
                     size="large"
                     sx={{
-                      width: 44,
-                      height: 44,
+                      width: { xs: 44, sm: 46, md: 48 },
+                      height: { xs: 44, sm: 46, md: 48 },
                       borderRadius: "50%",
                       bgcolor: "primary.main",
                       color: "white",

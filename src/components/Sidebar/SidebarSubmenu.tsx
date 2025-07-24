@@ -56,7 +56,12 @@ const SidebarSubmenu: React.FC<SidebarSubmenuProps> = ({
           },
         },
       ]}
-      sx={{ zIndex: (theme) => theme.zIndex.tooltip }}
+      sx={{
+        zIndex: (theme) => theme.zIndex.tooltip + 1,
+        minWidth: 140,
+        maxWidth: { xs: 180, sm: 220 },
+        p: 0.5,
+      }}
     >
       {({ TransitionProps }) => (
         <Fade {...TransitionProps} timeout={200}>
