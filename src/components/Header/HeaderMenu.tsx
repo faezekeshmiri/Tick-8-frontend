@@ -4,7 +4,9 @@ import MenuItem from "@mui/material/MenuItem";
 import { IconButton, ListItemIcon, ListItemText } from "@mui/material";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { ThemeModeContext } from "../../App";
 
 type HeaderMenuProps = {
   onLogout: () => void;
@@ -23,6 +25,13 @@ export default function HeaderMenu({ onLogout }: HeaderMenuProps) {
   const handleLogout = () => {
     handleClose();
     onLogout();
+  };
+
+  const { isDarkMode, toggleTheme } = React.useContext(ThemeModeContext);
+
+  const handleDarkMode = () => {
+    handleClose();
+    toggleTheme();
   };
 
   return (
@@ -60,11 +69,17 @@ export default function HeaderMenu({ onLogout }: HeaderMenuProps) {
           },
         }}
       >
-        <MenuItem onClick={handleClose}>
+        <MenuItem onClick={handleDarkMode}>
           <ListItemIcon>
-            <DarkModeIcon fontSize="small" />
+            {isDarkMode ? (
+              <LightModeIcon fontSize="small" />
+            ) : (
+              <DarkModeIcon fontSize="small" />
+            )}
           </ListItemIcon>
-          <ListItemText>Dark Mode</ListItemText>
+          <ListItemText>
+            {isDarkMode ? "Light Mode" : "Dark Mode"}
+          </ListItemText>
         </MenuItem>
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
