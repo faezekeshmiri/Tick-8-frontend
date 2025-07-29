@@ -34,7 +34,7 @@ const Header: React.FC = () => {
           alignItems: "center",
           padding: "0 16px",
         }}
-      > 
+      >
         {/* Logo */}
         <Box>
           <Typography variant="h5" component="div">
@@ -45,34 +45,26 @@ const Header: React.FC = () => {
         {/* Buttons */}
         <Box className="flex gap-2">
           {isLoggedIn ? (
-            <Button color="inherit" onClick={onLogout}>
+            <Button
+              color="inherit"
+              className="text-white hover:bg-primary-light transition-colors"
+              onClick={onLogout}
+            >
               Logout
             </Button>
           ) : (
             <>
               <Button
-                size="large"
                 color="inherit"
-                // className="text-white hover:primary.light transition-colors"
+                className="text-white hover:bg-primary-light transition-colors"
                 onClick={() => setIsLoggedIn((prev) => !prev)}
               >
                 Login
               </Button>
               <Button
                 variant="contained"
-                size="large"
-                color="inherit"
-                // sx={{
-                //   bgcolor: "primary.main",
-                //   color: "white",
-                //   transition: "all 0.3s ease-in-out",
-                //   boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
-                //   "&:hover": {
-                //     transform: "scale(1.05)",
-                //     boxShadow: "0 6px 12px rgba(0,0,0,0.25)",
-                //     bgcolor: "primary.light",
-                //   },
-                // }}
+                className="text-primary-contrast hover:bg-primary-light transition-colors"
+                onClick={() => setIsLoggedIn((prev) => !prev)}
               >
                 Sign Up
               </Button>

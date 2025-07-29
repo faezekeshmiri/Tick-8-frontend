@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import AppRouter from './routes/AppRouter';
 import MainLayout from "./layouts/MainLayout";
@@ -8,6 +8,15 @@ import { darkTheme } from './assets/theme';
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <CssBaseline />
