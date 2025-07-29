@@ -47,7 +47,7 @@ const Header: React.FC = () => {
           {isLoggedIn ? (
             <Button
               color="inherit"
-              className="text-white hover:bg-primary-light transition-colors"
+              className="text-white hover:bg-primary-light dark:hover:bg-primary-light-dark transition-colors"
               onClick={onLogout}
             >
               Logout
@@ -56,14 +56,14 @@ const Header: React.FC = () => {
             <>
               <Button
                 color="inherit"
-                className="text-white hover:bg-primary-light transition-colors"
+                className="text-white hover:bg-primary-light dark:hover:bg-primary-light-dark transition-colors"
                 onClick={() => setIsLoggedIn((prev) => !prev)}
               >
                 Login
               </Button>
               <Button
                 variant="contained"
-                className="text-primary-contrast hover:bg-primary-light transition-colors"
+                className="text-primary-contrast hover:bg-primary-light dark:hover:bg-primary-light-dark transition-colors"
                 onClick={() => setIsLoggedIn((prev) => !prev)}
               >
                 Sign Up

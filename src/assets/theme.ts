@@ -30,6 +30,7 @@ export const darkTheme = createTheme({
     mode: 'dark',
     primary: {
       main: '#90caf9',
+      light: '#a6d6ff',
     },
     background: {
       default: '#012A4A',
