@@ -7,6 +7,7 @@ import {
   Box,
   useTheme,
 } from "@mui/material";
+import HeaderMenu from "./HeaderMenu";
 
 const Header: React.FC = () => {
   const theme = useTheme();
@@ -45,13 +46,7 @@ const Header: React.FC = () => {
         {/* Buttons */}
         <Box className="flex gap-2">
           {isLoggedIn ? (
-            <Button
-              color="inherit"
-              className="text-white hover:bg-primary-light dark:hover:bg-primary-light-dark transition-colors"
-              onClick={onLogout}
-            >
-              Logout
-            </Button>
+            <HeaderMenu onLogout={onLogout} />
           ) : (
             <>
               <Button
