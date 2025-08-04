@@ -7,18 +7,21 @@ import {
   ListItem,
   ListItemButton,
   useTheme,
+  Avatar,
+  Typography,
+  Box,
 } from "@mui/material";
 
-import { SidebarItem, SubmenuItem } from "../../types/Sidebar.types";
+import { SidebarItem, SubmenuItem, SidebarAvatar } from "../../types/Sidebar.types";
 import SidebarSubmenu from "./SidebarSubmenu";
 
 type SidebarProps = {
   items: SidebarItem[];
+  avatar?: SidebarAvatar;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ items }) => {
+const Sidebar: React.FC<SidebarProps> = ({ items, avatar }) => {
   const theme = useTheme();
-  // const [isHovered, setIsHovered] = useState(false);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [submenuItems, setSubmenuItems] = useState<SubmenuItem[]>([]);
   const [submenuOpen, setSubmenuOpen] = useState(false);
@@ -57,10 +60,8 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
         color="primary"
         anchor={theme.direction === "rtl" ? "right" : "left"}
         sx={{
-          // width: drawerWidth,
           flexShrink: 0,
           "& .MuiDrawer-paper": {
-            // width: drawerWidth,
             height: "100%", // Important: only take parent height
             top: "auto", // Cancel fixed top positioning
             bottom: "auto", // Cancel fixed bottom positioning
@@ -79,6 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
                   disableRipple
                   sx={{
                     paddingY: 0.5,
+                    // paddingX: 2,
                     marginY: 1,
                     "&:hover": {
                       backgroundColor: "transparent",
@@ -95,8 +97,8 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
                     color="primary"
                     size="large"
                     sx={{
-                      width: { xs: 44, sm: 46, md: 48 },
-                      height: { xs: 44, sm: 46, md: 48 },
+                      width: { xs: 48, sm: 50, md: 52 },
+                      height: { xs: 48, sm: 50, md: 52 },
                       borderRadius: "50%",
                       bgcolor: "primary.main",
                       color: "white",
@@ -115,6 +117,38 @@ const Sidebar: React.FC<SidebarProps> = ({ items }) => {
             </ListItem>
           ))}
         </List>
+        {/* Avatar at the bottom */}
+        {avatar && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: 20,
+              left: 0,
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 0.5,
+            }}
+          >
+            <Avatar
+              alt={avatar.name}
+              src={avatar.imageUrl}
+              sx={{ 
+                width: { xs: 48, sm: 50, md: 52 },
+                height: { xs: 48, sm: 50, md: 52 },
+                bgcolor: "primary.light",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
+                transition: "all 0.3s ease-in-out",
+                "&:hover": {  
+                  transform: "scale(1.15)",
+                  boxShadow: "0 6px 12px rgba(0,0,0,0.25)",
+                  bgcolor: "primary.main",
+                }
+              }}
+            />
+          </Box>
+        )}
       </Drawer>
       <SidebarSubmenu
         anchorEl={anchorEl}

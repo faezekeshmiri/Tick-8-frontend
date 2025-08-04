@@ -8,11 +8,18 @@ import InfoIcon from "@mui/icons-material/Info";
 
 import clsx from "clsx";
 import Sidebar from "../components/Sidebar/Sidebar";
+import { SidebarAvatar } from "../types/Sidebar.types";
 
 interface MainLayoutProps {
   children: ReactNode;
   direction?: "ltr" | "rtl";
 }
+
+const avatarData: SidebarAvatar = {
+  name: "Jane Doe",
+  imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+  email: "jane.doe@example.com",
+};
 
 const MainLayout: React.FC<MainLayoutProps> = ({
   children,
@@ -65,6 +72,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
               { label: "Reports", onClick: () => console.log("Reports") },
             ] },
           ]}
+          avatar={avatarData}
         />
         <Box component="main" sx={{ flexGrow: 1, p: 2 }}>
           {children}
