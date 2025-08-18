@@ -1,12 +1,11 @@
 import React, { ReactNode, useEffect, useState } from "react";
-import { AppBar, Box, Paper, Toolbar, Typography } from "@mui/material";
+import { AppBar, Box, Button, Paper, Toolbar, Typography } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import InfoIcon from "@mui/icons-material/Info";
-
-import clsx from "clsx";
+import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import { SidebarAvatar } from "../types/Sidebar.types";
 
@@ -50,27 +49,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   return (
     <Box sx={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* Header */}
-      <AppBar position="static" sx={{ height: HEADER_HEIGHT }}>
+      {/* <AppBar position="static" sx={{ height: HEADER_HEIGHT }}>
         <Toolbar>
           <Typography variant="h6" component="div">
             My App
           </Typography>
         </Toolbar>
-      </AppBar>
-
+      </AppBar> */}
+      <Header />
+      {/* Main Content Area */}
       {/* Body with Sidebar + Content */}
       <Box sx={{ flex: 1, display: "flex", flexDirection: "row" }}>
         <Sidebar
           items={[
-            { icon: <HomeIcon />, title: "Home", submenuItems: [
-              { label: "Dashboard", onClick: () => console.log("Dashboard") },
-              { label: "Reports", onClick: () => console.log("Reports") },
-            ] },
+            {
+              icon: <HomeIcon />,
+              title: "Home",
+              submenuItems: [
+                { label: "Dashboard", onClick: () => console.log("Dashboard") },
+                { label: "Reports", onClick: () => console.log("Reports") },
+              ],
+            },
             { icon: <SettingsIcon />, title: "Settings" },
-            { icon: <InfoIcon />, title: "About", submenuItems: [
-              { label: "Dashboard", onClick: () => console.log("Dashboard") },
-              { label: "Reports", onClick: () => console.log("Reports") },
-            ] },
+            {
+              icon: <InfoIcon />,
+              title: "About",
+              submenuItems: [
+                { label: "Dashboard", onClick: () => console.log("Dashboard") },
+                { label: "Reports", onClick: () => console.log("Reports") },
+              ],
+            },
           ]}
           avatar={avatarData}
         />
