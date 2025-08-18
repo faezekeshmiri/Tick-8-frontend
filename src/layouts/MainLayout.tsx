@@ -16,7 +16,8 @@ interface MainLayoutProps {
 
 const avatarData: SidebarAvatar = {
   name: "Jane Doe",
-  imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+  // imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+  imageUrl: "",
   email: "jane.doe@example.com",
 };
 
