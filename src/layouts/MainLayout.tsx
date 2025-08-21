@@ -16,8 +16,8 @@ interface MainLayoutProps {
 
 const avatarData: SidebarAvatar = {
   name: "Jane Doe",
-  // imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-  imageUrl: "",
+  imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
+  // imageUrl: "",
   email: "jane.doe@example.com",
 };
 
@@ -28,7 +28,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const [dir, setDir] = useState<"ltr" | "rtl">(direction);
   const HEADER_HEIGHT = 64;
-  const FOOTER_HEIGHT = 48;
 
   // Material UI theme
   const theme = React.useMemo(
@@ -86,20 +85,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         <Box component="main" sx={{ flexGrow: 1, p: 2 }}>
           {children}
         </Box>
-      </Box>
-
-      {/* Footer */}
-      <Box
-        component="footer"
-        sx={{
-          height: FOOTER_HEIGHT,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          bgcolor: "grey.100",
-        }}
-      >
-        <Typography variant="body2">© 2025 Your App</Typography>
       </Box>
     </Box>
   );
