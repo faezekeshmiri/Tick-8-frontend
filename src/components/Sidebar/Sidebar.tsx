@@ -11,6 +11,7 @@ import {
   Box,
 } from "@mui/material";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import { useNavigate } from "react-router-dom";
 
 import {
   SidebarItem,
@@ -36,6 +37,7 @@ type SidebarProps = {
 
 const Sidebar: React.FC<SidebarProps> = ({ items, avatar }) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [submenuItems, setSubmenuItems] = useState<SubmenuItem[]>([]);
   const [submenuOpen, setSubmenuOpen] = useState(false);
@@ -144,9 +146,9 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar }) => {
               gap: 0.5,
               paddingY: 0.5,
               marginY: 1,
+              cursor: "pointer",
             }}
             onMouseEnter={(e) => handleMouseEnter(e, [], "User Profile")}
-            onClick={(e) => handleMouseEnter(e, [], "User Profile")}
           >
             <Avatar
               alt={avatar.name}
@@ -169,6 +171,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar }) => {
                 },
                 fontSize: 32,
               }}
+              onClick={() => navigate("/profile")}
             >
               {!avatar.imageUrl ? <AccountCircleIcon fontSize="large" /> : null}
             </Avatar>
