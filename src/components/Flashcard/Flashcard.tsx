@@ -5,10 +5,15 @@ import IconButton from "@mui/material/IconButton";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CircleIcon from "@mui/icons-material/Circle";
+import CheckIcon from "@mui/icons-material/Check";
+import ClearIcon from "@mui/icons-material/Clear";
+import RemoveIcon from "@mui/icons-material/Remove";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
+
 
 interface FlashcardProps {
   word: string;
@@ -21,6 +26,8 @@ interface FlashcardProps {
 
 const MAX_TICKS = 8;
 
+type MarkType = 'tick' | 'x';
+
 const Flashcard: React.FC<FlashcardProps> = ({
   word,
   type,
@@ -30,22 +37,54 @@ const Flashcard: React.FC<FlashcardProps> = ({
   exampleTranslation,
 }) => {
   const [flipped, setFlipped] = useState(false);
-  const [ticks, setTicks] = useState(0);
+  const [frontMarks, setFrontMarks] = useState<MarkType[]>([]);
+  const [backMarks, setBackMarks] = useState<MarkType[]>([]);
+  const [hoveredFrontIndex, setHoveredFrontIndex] = useState<number | null>(null);
+  const [hoveredBackIndex, setHoveredBackIndex] = useState<number | null>(null);
+  const theme = useTheme();
 
-  const handleAddTick = (e: React.MouseEvent) => {
+  const handleAddFrontMark = (markType: MarkType) => (e: React.MouseEvent) => {
     e.stopPropagation();
-    setTicks((prev) => (prev < MAX_TICKS ? prev + 1 : prev));
+    setFrontMarks((prev) => (prev.length < MAX_TICKS ? [...prev, markType] : prev));
+  };
+
+  const handleAddBackMark = (markType: MarkType) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBackMarks((prev) => (prev.length < MAX_TICKS ? [...prev, markType] : prev));
+  };
+
+  const handleRemoveMark = (
+    setMarks: React.Dispatch<React.SetStateAction<MarkType[]>>,
+    index: number,
+    setHoveredIndex: React.Dispatch<React.SetStateAction<number | null>>
+  ) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMarks((prev) => prev.filter((_, i) => i !== index));
+    setHoveredIndex(null);
+  };
+
+  const handleToggleMark = (
+    setMarks: React.Dispatch<React.SetStateAction<MarkType[]>>,
+    index: number
+  ) => (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMarks((prev) =>
+      prev.map((mark, i) => (i === index ? (mark === 'tick' ? 'x' : 'tick') : mark))
+    );
   };
 
   const handleFlip = () => {
-    setFlipped((prev) => {
-      // Remove a tick on flip (if any)
-      if (ticks > 0) setTicks((t) => t - 1);
-      return !prev;
-    });
+    setFlipped((prev) => !prev);
   };
 
-  const footer = (
+  const renderFooter = (
+    marks: MarkType[],
+    onAddTick: (e: React.MouseEvent) => void,
+    onAddX: (e: React.MouseEvent) => void,
+    hoveredIndex: number | null,
+    setHoveredIndex: React.Dispatch<React.SetStateAction<number | null>>,
+    setMarks: React.Dispatch<React.SetStateAction<MarkType[]>>
+  ) => (
     <Box
       sx={{
         display: "flex",
@@ -57,39 +96,160 @@ const Flashcard: React.FC<FlashcardProps> = ({
         width: "100%",
         justifyContent: "center",
         zIndex: 2,
+        mb: 0.5,
       }}
     >
-      {[...Array(MAX_TICKS)].map((_, i) =>
-        i < ticks ? (
-          <CheckCircleIcon key={i} fontSize="small" color="success" />
-        ) : (
-          <RadioButtonUncheckedIcon key={i} fontSize="small" color="disabled" />
-        )
-      )}
+      {[...Array(MAX_TICKS)].map((_, i) => {
+        const isFilled = i < marks.length;
+        const isHovered = hoveredIndex === i && isFilled;
+        const markType = marks[i];
+
+        return (
+          <Box
+            key={i}
+            sx={{ position: "relative", display: "inline-flex" }}
+            onMouseEnter={() => isFilled && setHoveredIndex(i)}
+            onMouseLeave={() => setHoveredIndex(null)}
+          >
+            {isFilled ? (
+              markType === 'tick' ? (
+                <CheckCircleIcon
+                  fontSize="medium"
+                  color="success"
+                  sx={{
+                    transition: "transform 0.2s ease-in-out",
+                    transform: isHovered ? "scale(1.35)" : "scale(1)",
+                    cursor: "pointer",
+                  }}
+                />
+              ) : (
+                <CancelIcon
+                  fontSize="medium"
+                  color="error"
+                  sx={{
+                    transition: "transform 0.2s ease-in-out",
+                    transform: isHovered ? "scale(1.35)" : "scale(1)",
+                    cursor: "pointer",
+                  }}
+                />
+              )
+            ) : (
+              <CircleIcon
+                fontSize="medium"
+                sx={{
+                  color: theme.palette.primary.contrastText,
+                  opacity: 0.9,
+                  stroke: theme.palette.primary.light,
+                  strokeWidth: 1,
+                }}
+              />
+            )}
+            {/* Floating action button group */}
+            {isHovered && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "100%",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  mt: 0.5,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.5,
+                  zIndex: 10,
+                  animation: "fadeSlideIn 0.2s ease-out",
+                  "@keyframes fadeSlideIn": {
+                    "0%": {
+                      opacity: 0,
+                      transform: "translateX(-50%) translateY(-8px) scale(0.9)",
+                    },
+                    "100%": {
+                      opacity: 1,
+                      transform: "translateX(-50%) translateY(0) scale(1)",
+                    },
+                  },
+                }}
+              >
+                <IconButton
+                  size="small"
+                  aria-label="toggle-mark"
+                  onClick={handleToggleMark(setMarks, i)}
+                  sx={{
+                    bgcolor: markType === 'tick' ? "error.light" : "success.light",
+                    "&:hover": {
+                      bgcolor: markType === 'tick' ? "error.main" : "success.main",
+                    },
+                    width: 28,
+                    height: 28,
+                  }}
+                >
+                  {markType === 'tick' ? (
+                    <ClearIcon fontSize="small" sx={{ color: "white" }} />
+                  ) : (
+                    <CheckIcon fontSize="small" sx={{ color: "white" }} />
+                  )}
+                </IconButton>
+                  <IconButton
+                  size="small"
+                  aria-label="remove-mark"
+                  onClick={handleRemoveMark(setMarks, i, setHoveredIndex)}
+                  sx={{
+                    bgcolor: "grey.200",
+                    "&:hover": { bgcolor: "grey.300" },
+                    width: 28,
+                    height: 28,
+                  }}
+                >
+                  <RemoveIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
+          </Box>
+        );
+      })}
       <IconButton
         size="small"
         aria-label="add-tick"
-        onClick={handleAddTick}
-        sx={{ ml: 1 }}
-        disabled={ticks >= MAX_TICKS}
+        onClick={onAddTick}
+        color='success'
+        sx={{ ml: 0.5 }}
+        disabled={marks.length >= MAX_TICKS}
       >
-        <AddCircleOutlineIcon color={ticks < MAX_TICKS ? "primary" : "disabled"} />
+        <CheckIcon fontSize="medium" color={marks.length < MAX_TICKS ? "success" : "disabled"} />
+      </IconButton>
+      <IconButton
+        size="small"
+        aria-label="add-x"
+        onClick={onAddX}
+        color='error'
+        disabled={marks.length >= MAX_TICKS}
+      >
+        <ClearIcon fontSize="medium" color={marks.length < MAX_TICKS ? "error" : "disabled"} />
       </IconButton>
     </Box>
   );
 
   return (
-    <Box sx={{ perspective: 1000, display: "inline-block" }}>
+    <Box
+      sx={{
+        perspective: 1200,
+        display: "inline-block",
+        width: 360,
+        height: 220,
+      }}
+    >
       <Card
         variant="outlined"
         sx={{
-          width: 345,
-          height: 200,
+          width: "100%",
+          height: "100%",
           position: "relative",
+          borderRadius: 3,
+          boxShadow: "0 10px 24px rgba(0,0,0,0.12)",
           transition: "transform 0.5s",
           transformStyle: "preserve-3d",
           transform: flipped ? "rotateY(180deg)" : "none",
-          overflow: "visible", // <-- important for 3D flip
+          overflow: "visible",
         }}
       >
         {/* Front Side */}
@@ -108,13 +268,18 @@ const Flashcard: React.FC<FlashcardProps> = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
+            gap: 0.5,
+            px: 3,
+            py: 4,
           }}
         >
           <Typography variant="h5" fontWeight="bold">{word}</Typography>
-          <Typography variant="subtitle2" color="text.secondary">{type}</Typography>
-          <Typography variant="subtitle2" color="text.secondary">{pronunciation}</Typography>
+          <Typography variant="subtitle1" color="text.secondary">{type}</Typography>
+          <Typography variant="subtitle1" color="text.secondary">{pronunciation}</Typography>
           {example && (
-            <Typography variant="body2" mt={2}>"{example}"</Typography>
+            <Typography variant="body1" mt={2} mb={3}>"{example}"</Typography>
           )}
           <IconButton
             aria-label="flip"
@@ -123,7 +288,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
           >
             <ArrowForwardIcon />
           </IconButton>
-          {footer}
+          {renderFooter(frontMarks, handleAddFrontMark('tick'), handleAddFrontMark('x'), hoveredFrontIndex, setHoveredFrontIndex, setFrontMarks)}
         </CardContent>
         {/* Back Side */}
         <CardContent
@@ -134,8 +299,8 @@ const Flashcard: React.FC<FlashcardProps> = ({
             top: 0,
             left: 0,
             backfaceVisibility: "hidden",
-            bgcolor: "#48CAE4", // Use your theme's primary.light color
-            color: "#fff",      // Use your theme's primary.contrastText color
+            bgcolor: theme.palette.primary.light,
+            color: "#fff",
             transform: "rotateY(180deg)",
             opacity: flipped ? 1 : 0,
             pointerEvents: flipped ? "auto" : "none",
@@ -144,6 +309,12 @@ const Flashcard: React.FC<FlashcardProps> = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: "center",
+            alignItems: "center",
+            textAlign: "center",
+            gap: 0.5,
+            px: 3,
+            py: 4,
+            borderRadius: 3,
           }}
         >
           <Typography variant="h5" fontWeight="bold">{translation}</Typography>
@@ -157,7 +328,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
           >
             <ArrowBackIcon />
           </IconButton>
-          {footer}
+          {renderFooter(backMarks, handleAddBackMark('tick'), handleAddBackMark('x'), hoveredBackIndex, setHoveredBackIndex, setBackMarks)}
         </CardContent>
       </Card>
     </Box>
