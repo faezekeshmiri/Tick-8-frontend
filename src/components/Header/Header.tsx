@@ -7,15 +7,14 @@ import {
   Box,
   useTheme,
 } from "@mui/material";
+import { Link } from "react-router-dom";
 import HeaderMenu from "./HeaderMenu";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Header: React.FC = () => {
   const theme = useTheme();
   const isRTL = theme.direction === "rtl";
-  const [isLoggedIn, setIsLoggedIn] = React.useState<boolean>(false); // Simulated login state
-  const onLogout = () => {
-    setIsLoggedIn(false);
-  };
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <AppBar
@@ -45,21 +44,23 @@ const Header: React.FC = () => {
 
         {/* Buttons */}
         <Box className="flex gap-2">
-          {isLoggedIn ? (
-            <HeaderMenu onLogout={onLogout} />
+          {isAuthenticated ? (
+            <HeaderMenu onLogout={logout} />
           ) : (
             <>
               <Button
+                component={Link}
+                to="/login"
                 color="inherit"
                 className="text-white hover:bg-primary-light dark:hover:bg-primary-light-dark transition-colors"
-                onClick={() => setIsLoggedIn((prev) => !prev)}
               >
                 Login
               </Button>
               <Button
+                component={Link}
+                to="/signup"
                 variant="contained"
                 className="text-primary-contrast hover:bg-primary-light dark:hover:bg-primary-light-dark transition-colors"
-                onClick={() => setIsLoggedIn((prev) => !prev)}
               >
                 Sign Up
               </Button>
