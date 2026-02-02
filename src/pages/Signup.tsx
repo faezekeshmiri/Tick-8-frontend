@@ -163,12 +163,15 @@ const Signup: React.FC = () => {
             type="submit"
             fullWidth
             variant="contained"
-            color="primary"
             disabled={isSubmitting}
             className="mb-4 py-3"
             sx={{
               marginBottom: '1rem',
               padding: '0.75rem',
+              backgroundColor: 'primary.main',
+              '&:hover': {
+                backgroundColor: 'primary.dark',
+              },
             }}
           >
             {isSubmitting ? 'Creating account...' : 'Sign Up'}

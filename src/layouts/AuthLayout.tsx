@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { Box, useMediaQuery } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import { lightTheme, darkTheme } from '../assets/theme';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -9,15 +10,7 @@ interface AuthLayoutProps {
 const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
-  const theme = React.useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: prefersDarkMode ? 'dark' : 'light',
-        },
-      }),
-    [prefersDarkMode]
-  );
+  const theme = prefersDarkMode ? darkTheme : lightTheme;
 
   return (
     <ThemeProvider theme={theme}>
