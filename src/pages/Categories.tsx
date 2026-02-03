@@ -16,6 +16,7 @@ import {
   Divider,
   IconButton,
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
@@ -58,6 +59,7 @@ const Categories: React.FC = () => {
   const [newDescription, setNewDescription] = useState("");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const categoriesSorted = useMemo(
     () => [...categories].sort((a, b) => a.name.localeCompare(b.name)),
@@ -175,12 +177,20 @@ const Categories: React.FC = () => {
                 key={category.name}
                 className="border border-gray-100/70 shadow-sm"
                 sx={{
+                  cursor: "pointer",
                   transition: "transform 0.2s ease, box-shadow 0.2s ease",
                   "&:hover": {
                     transform: "translateY(-4px)",
                     boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
                   },
                 }}
+                onClick={() =>
+                  navigate(
+                    `/categories/${encodeURIComponent(
+                      category.name
+                    )}/subcategories`
+                  )
+                }
               >
                 <CardContent>
                   <Box className="flex items-start justify-between gap-3">
