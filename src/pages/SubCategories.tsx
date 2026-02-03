@@ -86,7 +86,7 @@ const SubCategories: React.FC = () => {
 
   return (
     <Box className="w-full">
-      <Box className="mx-auto w-full max-w-5xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
+      <Box className="mx-auto w-full px-4 pb-20 pt-6 sm:px-6 lg:px-8">
         <Box className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Box>
             <Box className="flex items-center gap-2">
@@ -96,7 +96,7 @@ const SubCategories: React.FC = () => {
               >
                 <ArrowBackIcon />
               </IconButton>
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              <Typography variant="h4" className="font-bold">
                 {decodedName}
               </Typography>
             </Box>
@@ -112,16 +112,15 @@ const SubCategories: React.FC = () => {
             label={`${subCategories.length} total`}
             color="secondary"
             variant="outlined"
-            sx={{ fontWeight: 600 }}
+            className="font-semibold"
           />
         </Box>
 
-        <Divider sx={{ my: 3 }} />
-
+        <Divider className="my-3" />
         {subCategoriesSorted.length === 0 ? (
           <Card className="border border-dashed border-gray-200/70">
             <CardContent className="py-12 text-center">
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              <Typography variant="h6" className="font-semibold">
                 No sub-categories yet
               </Typography>
               <Typography
@@ -200,18 +199,9 @@ const SubCategories: React.FC = () => {
                     zIndex: 2,
                   }}
                 >
-                  <CardContent
-                    sx={{
-                      height: "100%",
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "space-between",
-                      px: 3,
-                      py: 3,
-                    }}
-                  >
+                  <CardContent className="h-full flex flex-col justify-between px-3 py-3">
                     <Box className="flex items-start justify-between gap-3">
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      <Typography variant="subtitle1" className="font-semibold">
                         {item.name}
                       </Typography>
                       <Chip
@@ -257,25 +247,17 @@ const SubCategories: React.FC = () => {
           },
         }}
       >
-        <DialogTitle
-          sx={{
-            px: 3,
-            py: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        <DialogTitle className="flex items-center justify-between px-3 py-3">
           Add new sub-category
           <IconButton aria-label="close" onClick={handleCloseDialog}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ px: 3, pb: 0, overflowX: "hidden" }}>
+        <DialogContent className="px-3 pb-0 overflow-x-hidden">
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ mb: 2 }}
+            className="mb-2"
           >
             Add a short description to make this section easy to recognize.
           </Typography>
@@ -306,10 +288,10 @@ const SubCategories: React.FC = () => {
             onChange={(event) => setNewDescription(event.target.value)}
             multiline
             minRows={3}
-            sx={{ mt: 2, mb: 1 }}
+            className="mt-2 mb-1"
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+        <DialogActions className="px-3 pb-3 pt-2 gap-1">
           <Button onClick={handleCloseDialog} variant="text">
             Cancel
           </Button>

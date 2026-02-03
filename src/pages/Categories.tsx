@@ -134,10 +134,10 @@ const Categories: React.FC = () => {
 
   return (
     <Box className="w-full">
-      <Box className="mx-auto w-full max-w-6xl px-4 pb-20 pt-6 sm:px-6 lg:px-8">
+      <Box className="mx-auto w-full px-4 pb-20 pt-6 sm:px-6 lg:px-8">
         <Box className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Box>
-            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+            <Typography variant="h4" className="font-bold">
               Categories
             </Typography>
             <Typography
@@ -153,16 +153,16 @@ const Categories: React.FC = () => {
             label={`${categories.length} total`}
             color="secondary"
             variant="outlined"
-            sx={{ fontWeight: 600 }}
+            className="font-semibold"
           />
         </Box>
 
-        <Divider sx={{ my: 3 }} />
+        <Divider className="my-3" />
 
         {categoriesSorted.length === 0 ? (
           <Card className="border border-dashed border-gray-200/70">
             <CardContent className="py-12 text-center">
-              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              <Typography variant="h6" className="font-semibold">
                 No categories yet
               </Typography>
               <Typography variant="body2" color="text.secondary" className="mt-2">
@@ -195,7 +195,7 @@ const Categories: React.FC = () => {
                 <CardContent>
                   <Box className="flex items-start justify-between gap-3">
                     <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                      <Typography variant="subtitle1" className="font-semibold">
                         {category.name}
                       </Typography>
                       <Typography
@@ -214,11 +214,14 @@ const Categories: React.FC = () => {
                     />
                   </Box>
                 </CardContent>
-                <CardActions sx={{ px: 2, pb: 2, gap: 1 }}>
+                <CardActions className="px-2 pb-2 gap-1">
                   <Button
                     size="small"
                     startIcon={<EditIcon />}
-                    onClick={() => handleEditCategory(category)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleEditCategory(category);
+                    }}
                   >
                     Edit
                   </Button>
@@ -226,7 +229,10 @@ const Categories: React.FC = () => {
                     size="small"
                     color="error"
                     startIcon={<DeleteIcon />}
-                    onClick={() => handleDeleteCategory(category.name)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleDeleteCategory(category.name);
+                    }}
                   >
                     Delete
                   </Button>
@@ -262,25 +268,17 @@ const Categories: React.FC = () => {
           },
         }}
       >
-        <DialogTitle
-          sx={{
-            px: 3,
-            py: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        <DialogTitle className="flex items-center justify-between py-3 px-3">
           {editingIndex === null ? "Add new category" : "Edit category"}
           <IconButton aria-label="close" onClick={handleCloseDialog}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ px: 3, pb: 0, overflowX: "hidden" }}>
+        <DialogContent className="pb-0 px-3" sx={{ overflowX: "hidden" }}>
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ mb: 2 }}
+            className="mb-3"
           >
             Give your category a clear, descriptive name.
           </Typography>
@@ -311,10 +309,10 @@ const Categories: React.FC = () => {
             onChange={(event) => setNewDescription(event.target.value)}
             multiline
             minRows={3}
-            sx={{ mt: 2, mb: 1 }}
+            className="mt-2 mb-1"
           />
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, pt: 2, gap: 1 }}>
+        <DialogActions className="px-3 pb-3 pt-2 gap-1">
           <Button onClick={handleCloseDialog} variant="text">
             Cancel
           </Button>
