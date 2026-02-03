@@ -3,11 +3,13 @@ import { AppBar, Box, Button, Paper, Toolbar, Typography } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
+import CategoryIcon from "@mui/icons-material/Category";
 import SettingsIcon from "@mui/icons-material/Settings";
 import InfoIcon from "@mui/icons-material/Info";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import { SidebarAvatar } from "../types/Sidebar.types";
+import { useNavigate } from "react-router-dom";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -25,6 +27,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   children,
   direction = "ltr",
 }) => {
+  const navigate = useNavigate();
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
   const [dir, setDir] = useState<"ltr" | "rtl">(direction);
   const HEADER_HEIGHT = 64;
@@ -69,6 +72,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 { label: "Dashboard", onClick: () => console.log("Dashboard") },
                 { label: "Reports", onClick: () => console.log("Reports") },
               ],
+            },
+            {
+              icon: <CategoryIcon />,
+              title: "Categories",
+              onClick: () => navigate("/categories"),
             },
             { icon: <SettingsIcon />, title: "Settings" },
             {
