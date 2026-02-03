@@ -101,12 +101,20 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar }) => {
                     backgroundColor: "transparent",
                   },
                 }}
-                onMouseEnter={(e) =>
-                  handleMouseEnter(e, item.submenuItems || [], item.title)
-                }
-                onClick={(e) =>
-                  handleMouseEnter(e, item.submenuItems || [], item.title)
-                }
+                onMouseEnter={(e) => {
+                  if (item.submenuItems && item.submenuItems.length > 0) {
+                    handleMouseEnter(e, item.submenuItems, item.title);
+                  }
+                }}
+                onClick={(e) => {
+                  if (item.onClick) {
+                    item.onClick();
+                    return;
+                  }
+                  if (item.submenuItems && item.submenuItems.length > 0) {
+                    handleMouseEnter(e, item.submenuItems, item.title);
+                  }
+                }}
               >
                 <IconButton
                   color="primary"
