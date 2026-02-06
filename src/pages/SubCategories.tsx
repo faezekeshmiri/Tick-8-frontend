@@ -186,6 +186,13 @@ const SubCategories: React.FC = () => {
                     transform: "translate3d(20px, 20px, -48px)",
                   },
                 }}
+                onClick={() =>
+                  navigate(
+                    `/categories/${encodeURIComponent(
+                      decodedName
+                    )}/subcategories/${encodeURIComponent(item.name)}`
+                  )
+                }
               >
                 <Box
                   aria-hidden
