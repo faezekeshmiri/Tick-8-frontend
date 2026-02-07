@@ -20,16 +20,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Flashcard from "../components/Flashcard";
-
-type FlashcardItem = {
-  id: string;
-  word: string;
-  type: string;
-  pronunciation: string;
-  translation: string;
-  example?: string;
-  exampleTranslation?: string;
-};
+import type { FlashcardItem } from "../types/SubCategory.types";
 
 const SubCategory: React.FC = () => {
   const navigate = useNavigate();

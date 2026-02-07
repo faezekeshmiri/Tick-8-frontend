@@ -19,12 +19,9 @@ import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate, useParams } from "react-router-dom";
-
-type SubCategory = {
-  name: string;
-  description: string;
-  color: string;
-};
+import type { SubCategory } from "../types/Category.types";
+import SubCategoryCard from "../components/SubCategoryCard";
+import { hexToRgba } from "../utils/color";
 
 const COLOR_OPTIONS = [
   { name: "Sky", value: "#38bdf8" },
@@ -35,18 +32,7 @@ const COLOR_OPTIONS = [
   { name: "Slate", value: "#64748b" },
 ];
 
-const hexToRgba = (hex: string, alpha: number) => {
-  const cleaned = hex.replace("#", "");
-  if (cleaned.length !== 6) {
-    return `rgba(0,0,0,${alpha})`;
-  }
-  const r = parseInt(cleaned.slice(0, 2), 16);
-  const g = parseInt(cleaned.slice(2, 4), 16);
-  const b = parseInt(cleaned.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
-const SubCategories: React.FC = () => {
+const Category: React.FC = () => {
   const navigate = useNavigate();
   const { categoryName } = useParams();
   const decodedName = categoryName ? decodeURIComponent(categoryName) : "Category";
@@ -165,27 +151,9 @@ const SubCategories: React.FC = () => {
         ) : (
           <Box className="flex flex-wrap gap-6">
             {subCategoriesSorted.map((item, index) => (
-              <Box
+              <SubCategoryCard
                 key={`${item.name}-${index}`}
-                className="subcat-stack"
-                sx={{
-                  position: "relative",
-                  width: 360,
-                  height: 220,
-                  maxWidth: "100%",
-                  cursor: "pointer",
-                  perspective: 900,
-                  transformStyle: "preserve-3d",
-                  "&:hover .stack-top": {
-                    transform: "translate3d(-8px, -8px, 24px)",
-                  },
-                  "&:hover .stack-layer-1": {
-                    transform: "translate3d(8px, 8px, -24px)",
-                  },
-                  "&:hover .stack-layer-2": {
-                    transform: "translate3d(20px, 20px, -48px)",
-                  },
-                }}
+                item={item}
                 onClick={() =>
                   navigate(
                     `/categories/${encodeURIComponent(
@@ -194,74 +162,7 @@ const SubCategories: React.FC = () => {
                     { state: { subCategoryColor: item.color } }
                   )
                 }
-              >
-                <Box
-                  aria-hidden
-                  className="stack-layer-2"
-                  sx={{
-                    position: "absolute",
-                    inset: 0,
-                    borderRadius: 3,
-                    bgcolor: "background.paper",
-                    boxShadow: `0 10px 20px ${hexToRgba(item.color, 0.18)}`,
-                    transform: "translate3d(12px, 12px, -32px)",
-                    transition: "transform 0.25s ease",
-                    zIndex: 0,
-                  }}
-                />
-                <Box
-                  aria-hidden
-                  className="stack-layer-1"
-                  sx={{
-                    position: "absolute",
-                    inset: 0,
-                    borderRadius: 3,
-                    bgcolor: "background.paper",
-                    boxShadow: `0 8px 16px ${hexToRgba(item.color, 0.22)}`,
-                    transform: "translate3d(6px, 6px, -16px)",
-                    transition: "transform 0.25s ease",
-                    zIndex: 1,
-                  }}
-                />
-                <Card
-                  className="stack-top"
-                  variant="outlined"
-                  sx={{
-                    position: "relative",
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: 3,
-                    boxShadow: `0 12px 24px ${hexToRgba(item.color, 0.28)}`,
-                    transform: "translate3d(0, 0, 0)",
-                    transition: "transform 0.25s ease",
-                    borderColor: item.color,
-                    zIndex: 2,
-                  }}
-                >
-                  <CardContent className="h-full flex flex-col justify-between px-3 py-3">
-                    <Box className="flex items-start justify-between gap-3">
-                      <Typography variant="subtitle1" className="font-semibold">
-                        {item.name}
-                      </Typography>
-                      <Box
-                        aria-hidden
-                        sx={{
-                          width: 14,
-                          height: 14,
-                          borderRadius: "50%",
-                          bgcolor: item.color,
-                          boxShadow: `0 0 0 4px ${hexToRgba(item.color, 0.18)}`,
-                          flexShrink: 0,
-                          mt: 0.5,
-                        }}
-                      />
-                    </Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {item.description}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Box>
+              />
             ))}
           </Box>
         )}
@@ -378,4 +279,4 @@ const SubCategories: React.FC = () => {
   );
 };
 
-export default SubCategories;
+export default Category;

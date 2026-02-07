@@ -21,11 +21,7 @@ import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-
-type Category = {
-  name: string;
-  description: string;
-};
+import type { Category } from "../types/Categories.types";
 
 const Categories: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([
