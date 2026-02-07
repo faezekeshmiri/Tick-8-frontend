@@ -190,7 +190,8 @@ const SubCategories: React.FC = () => {
                   navigate(
                     `/categories/${encodeURIComponent(
                       decodedName
-                    )}/subcategories/${encodeURIComponent(item.name)}`
+                    )}/subcategories/${encodeURIComponent(item.name)}`,
+                    { state: { subCategoryColor: item.color } }
                   )
                 }
               >
