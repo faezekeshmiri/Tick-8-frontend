@@ -4,15 +4,13 @@ import CardContent from "@mui/material/CardContent";
 import IconButton from "@mui/material/IconButton";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CancelIcon from "@mui/icons-material/Cancel";
 import CircleIcon from "@mui/icons-material/Circle";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import RemoveIcon from "@mui/icons-material/Remove";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 
 
 interface FlashcardProps {
@@ -22,6 +20,7 @@ interface FlashcardProps {
   translation: string;
   example?: string;
   exampleTranslation?: string;
+  color?: string;
 }
 
 const MAX_TICKS = 8;
@@ -35,6 +34,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
   translation,
   example,
   exampleTranslation,
+  color,
 }) => {
   const [flipped, setFlipped] = useState(false);
   const [frontMarks, setFrontMarks] = useState<MarkType[]>([]);
@@ -42,6 +42,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
   const [hoveredFrontIndex, setHoveredFrontIndex] = useState<number | null>(null);
   const [hoveredBackIndex, setHoveredBackIndex] = useState<number | null>(null);
   const theme = useTheme();
+  const cardColor = color || theme.palette.primary.main;
 
   const handleAddFrontMark = (markType: MarkType) => (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -107,31 +108,65 @@ const Flashcard: React.FC<FlashcardProps> = ({
         return (
           <Box
             key={i}
-            sx={{ position: "relative", display: "inline-flex" }}
+            sx={{ position: "relative", display: "inline-flex"}}
             onMouseEnter={() => isFilled && setHoveredIndex(i)}
             onMouseLeave={() => setHoveredIndex(null)}
           >
             {isFilled ? (
               markType === 'tick' ? (
-                <CheckCircleIcon
-                  fontSize="medium"
-                  color="success"
+                <Box
                   sx={{
+                    width: 24,
+                    height: 24,
+                    display: "grid",
+                    placeItems: "center",
                     transition: "transform 0.2s ease-in-out",
                     transform: isHovered ? "scale(1.35)" : "scale(1)",
                     cursor: "pointer",
                   }}
-                />
+                >
+                  <CircleIcon
+                    sx={{
+                      gridArea: "1 / 1",
+                      fontSize: 24,
+                      color: theme.palette.success.main,
+                    }}
+                  />
+                  <CheckIcon
+                    sx={{
+                      gridArea: "1 / 1",
+                      fontSize: 16,
+                      color: theme.palette.common.white,
+                    }}
+                  />
+                </Box>
               ) : (
-                <CancelIcon
-                  fontSize="medium"
-                  color="error"
+                <Box
                   sx={{
+                    width: 24,
+                    height: 24,
+                    display: "grid",
+                    placeItems: "center",
                     transition: "transform 0.2s ease-in-out",
                     transform: isHovered ? "scale(1.35)" : "scale(1)",
                     cursor: "pointer",
                   }}
-                />
+                >
+                  <CircleIcon
+                    sx={{
+                      gridArea: "1 / 1",
+                      fontSize: 24,
+                      color: theme.palette.error.main,
+                    }}
+                  />
+                  <ClearIcon
+                    sx={{
+                      gridArea: "1 / 1",
+                      fontSize: 16,
+                      color: theme.palette.common.white,
+                    }}
+                  />
+                </Box>
               )
             ) : (
               <CircleIcon
@@ -139,7 +174,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
                 sx={{
                   color: theme.palette.primary.contrastText,
                   opacity: 0.9,
-                  stroke: theme.palette.primary.light,
+                  stroke: cardColor,
                   strokeWidth: 1,
                 }}
               />
@@ -212,7 +247,10 @@ const Flashcard: React.FC<FlashcardProps> = ({
         aria-label="add-tick"
         onClick={onAddTick}
         color='success'
-        sx={{ ml: 0.5 }}
+        sx={{
+          ml: 0.5,
+          bgcolor: alpha(theme.palette.common.white, 0.18),
+        }}
         disabled={marks.length >= MAX_TICKS}
       >
         <CheckIcon fontSize="medium" color={marks.length < MAX_TICKS ? "success" : "disabled"} />
@@ -222,6 +260,9 @@ const Flashcard: React.FC<FlashcardProps> = ({
         aria-label="add-x"
         onClick={onAddX}
         color='error'
+        sx={{
+          bgcolor: alpha(theme.palette.common.white, 0.18),
+        }}
         disabled={marks.length >= MAX_TICKS}
       >
         <ClearIcon fontSize="medium" color={marks.length < MAX_TICKS ? "error" : "disabled"} />
@@ -245,7 +286,8 @@ const Flashcard: React.FC<FlashcardProps> = ({
           height: "100%",
           position: "relative",
           borderRadius: 3,
-          boxShadow: "0 10px 24px rgba(0,0,0,0.12)",
+          borderColor: cardColor,
+          boxShadow: `0 10px 24px ${alpha(cardColor, 0.35)}`,
           transition: "transform 0.5s",
           transformStyle: "preserve-3d",
           transform: flipped ? "rotateY(180deg)" : "none",
@@ -288,7 +330,14 @@ const Flashcard: React.FC<FlashcardProps> = ({
           >
             <ArrowForwardIcon />
           </IconButton>
-          {renderFooter(frontMarks, handleAddFrontMark('tick'), handleAddFrontMark('x'), hoveredFrontIndex, setHoveredFrontIndex, setFrontMarks)}
+          {renderFooter(
+            frontMarks,
+            handleAddFrontMark('tick'),
+            handleAddFrontMark('x'),
+            hoveredFrontIndex,
+            setHoveredFrontIndex,
+            setFrontMarks
+          )}
         </CardContent>
         {/* Back Side */}
         <CardContent
@@ -299,7 +348,7 @@ const Flashcard: React.FC<FlashcardProps> = ({
             top: 0,
             left: 0,
             backfaceVisibility: "hidden",
-            bgcolor: theme.palette.primary.light,
+            bgcolor: cardColor,
             color: "#fff",
             transform: "rotateY(180deg)",
             opacity: flipped ? 1 : 0,
@@ -328,7 +377,14 @@ const Flashcard: React.FC<FlashcardProps> = ({
           >
             <ArrowBackIcon />
           </IconButton>
-          {renderFooter(backMarks, handleAddBackMark('tick'), handleAddBackMark('x'), hoveredBackIndex, setHoveredBackIndex, setBackMarks)}
+          {renderFooter(
+            backMarks,
+            handleAddBackMark('tick'),
+            handleAddBackMark('x'),
+            hoveredBackIndex,
+            setHoveredBackIndex,
+            setBackMarks
+          )}
         </CardContent>
       </Card>
     </Box>

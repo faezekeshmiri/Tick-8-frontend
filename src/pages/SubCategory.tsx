@@ -18,7 +18,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Flashcard from "../components/Flashcard";
 
 type FlashcardItem = {
@@ -33,6 +33,7 @@ type FlashcardItem = {
 
 const SubCategory: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { categoryName, subCategoryName } = useParams();
   const decodedCategory = categoryName
     ? decodeURIComponent(categoryName)
@@ -40,6 +41,9 @@ const SubCategory: React.FC = () => {
   const decodedSubCategory = subCategoryName
     ? decodeURIComponent(subCategoryName)
     : "Sub-category";
+  const subCategoryColor = (
+    location.state as { subCategoryColor?: string } | null
+  )?.subCategoryColor;
 
   const [flashcards, setFlashcards] = useState<FlashcardItem[]>([
     {
@@ -159,13 +163,16 @@ const SubCategory: React.FC = () => {
           </Box>
           <Chip
             label={`${flashcards.length} total`}
-            color="secondary"
             variant="outlined"
             className="font-semibold"
+            sx={{
+              borderColor: subCategoryColor || "secondary.main",
+              color: subCategoryColor || "secondary.main",
+            }}
           />
         </Box>
 
-        <Divider className="my-3" />
+        <Divider className="my-5" />
 
         {flashcardsSorted.length === 0 ? (
           <Box className="rounded-2xl border border-dashed border-gray-200/70 py-12 text-center">
@@ -191,6 +198,7 @@ const SubCategory: React.FC = () => {
                   translation={card.translation}
                   example={card.example}
                   exampleTranslation={card.exampleTranslation}
+                  color={subCategoryColor}
                 />
                 <Box className="flex gap-2">
                   <Button
