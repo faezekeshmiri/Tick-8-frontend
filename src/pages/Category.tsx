@@ -58,6 +58,9 @@ const Category: React.FC = () => {
   const [newSubCategory, setNewSubCategory] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0].value);
+  const [editingSubCategoryName, setEditingSubCategoryName] = useState<
+    string | null
+  >(null);
   const [error, setError] = useState("");
 
   const subCategoriesSorted = useMemo(
@@ -65,39 +68,79 @@ const Category: React.FC = () => {
     [subCategories]
   );
 
-  const handleOpenDialog = () => setIsDialogOpen(true);
+  const handleOpenDialog = () => {
+    setNewSubCategory("");
+    setNewDescription("");
+    setSelectedColor(COLOR_OPTIONS[0].value);
+    setEditingSubCategoryName(null);
+    setError("");
+    setIsDialogOpen(true);
+  };
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false);
     setNewSubCategory("");
     setNewDescription("");
     setSelectedColor(COLOR_OPTIONS[0].value);
+    setEditingSubCategoryName(null);
     setError("");
   };
 
-  const handleAddSubCategory = () => {
+  const handleSubmitSubCategory = () => {
     const trimmed = newSubCategory.trim();
     if (!trimmed) {
       setError("Please enter a sub-category name.");
       return;
     }
     const exists = subCategories.some(
-      (item) => item.name.toLowerCase() === trimmed.toLowerCase()
+      (item) =>
+        item.name.toLowerCase() === trimmed.toLowerCase() &&
+        item.name !== editingSubCategoryName
     );
     if (exists) {
       setError("This sub-category already exists.");
       return;
     }
     const nextDescription = newDescription.trim();
-    setSubCategories((prev) => [
-      ...prev,
-      {
-        name: trimmed,
-        description: nextDescription || "No description yet.",
-        color: selectedColor,
-      },
-    ]);
+    if (editingSubCategoryName === null) {
+      setSubCategories((prev) => [
+        ...prev,
+        {
+          name: trimmed,
+          description: nextDescription || "No description yet.",
+          color: selectedColor,
+        },
+      ]);
+    } else {
+      setSubCategories((prev) =>
+        prev.map((item) =>
+          item.name === editingSubCategoryName
+            ? {
+                ...item,
+                name: trimmed,
+                description: nextDescription || "No description yet.",
+                color: selectedColor,
+              }
+            : item
+        )
+      );
+    }
     handleCloseDialog();
+  };
+
+  const handleEditSubCategory = (item: SubCategory) => {
+    setEditingSubCategoryName(item.name);
+    setNewSubCategory(item.name);
+    setNewDescription(item.description);
+    setSelectedColor(item.color);
+    setError("");
+    setIsDialogOpen(true);
+  };
+
+  const handleDeleteSubCategory = (name: string) => {
+    setSubCategories((prev) =>
+      prev.filter((subCategory) => subCategory.name !== name)
+    );
   };
 
   return (
@@ -150,9 +193,9 @@ const Category: React.FC = () => {
           </Card>
         ) : (
           <Box className="flex flex-wrap gap-6">
-            {subCategoriesSorted.map((item, index) => (
+            {subCategoriesSorted.map((item) => (
               <SubCategoryCard
-                key={`${item.name}-${index}`}
+                key={item.name}
                 item={item}
                 onClick={() =>
                   navigate(
@@ -162,6 +205,8 @@ const Category: React.FC = () => {
                     { state: { subCategoryColor: item.color } }
                   )
                 }
+                onEdit={() => handleEditSubCategory(item)}
+                onDelete={() => handleDeleteSubCategory(item.name)}
               />
             ))}
           </Box>
@@ -194,7 +239,9 @@ const Category: React.FC = () => {
         }}
       >
         <DialogTitle className="flex items-center justify-between px-3 py-3">
-          Add new sub-category
+          {editingSubCategoryName === null
+            ? "Add new sub-category"
+            : "Edit sub-category"}
           <IconButton aria-label="close" onClick={handleCloseDialog}>
             <CloseIcon />
           </IconButton>
@@ -223,7 +270,7 @@ const Category: React.FC = () => {
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault();
-                handleAddSubCategory();
+                handleSubmitSubCategory();
               }
             }}
           />
@@ -270,8 +317,10 @@ const Category: React.FC = () => {
           <Button onClick={handleCloseDialog} variant="text">
             Cancel
           </Button>
-          <Button onClick={handleAddSubCategory} variant="contained">
-            Save sub-category
+          <Button onClick={handleSubmitSubCategory} variant="contained">
+            {editingSubCategoryName === null
+              ? "Save sub-category"
+              : "Update sub-category"}
           </Button>
         </DialogActions>
       </Dialog>

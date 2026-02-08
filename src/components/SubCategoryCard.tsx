@@ -1,14 +1,23 @@
 import React from "react";
-import { Box, Card, CardContent, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, Typography } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import type { SubCategory } from "../types/Category.types";
 import { hexToRgba } from "../utils/color";
 
 type SubCategoryCardProps = {
   item: SubCategory;
   onClick: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
 };
 
-const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ item, onClick }) => (
+const SubCategoryCard: React.FC<SubCategoryCardProps> = ({
+  item,
+  onClick,
+  onEdit,
+  onDelete,
+}) => (
   <Box
     className="subcat-stack"
     sx={{
@@ -74,7 +83,7 @@ const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ item, onClick }) => (
         zIndex: 2,
       }}
     >
-      <CardContent className="h-full flex flex-col justify-between px-3 py-3">
+      <CardContent className="h-full flex flex-col px-3 py-3">
         <Box className="flex items-start justify-between gap-3">
           <Typography variant="subtitle1" className="font-semibold">
             {item.name}
@@ -92,9 +101,32 @@ const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ item, onClick }) => (
             }}
           />
         </Box>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" className="mt-2">
           {item.description}
         </Typography>
+        <Box className="mt-auto flex gap-2 pt-3">
+          <Button
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={(event) => {
+              event.stopPropagation();
+              onEdit();
+            }}
+          >
+            Edit
+          </Button>
+          <Button
+            size="small"
+            color="error"
+            startIcon={<DeleteIcon />}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete();
+            }}
+          >
+            Delete
+          </Button>
+        </Box>
       </CardContent>
     </Card>
   </Box>
