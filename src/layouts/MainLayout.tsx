@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
+import CategoryIcon from "@mui/icons-material/Category";
 import SettingsIcon from "@mui/icons-material/Settings";
 import InfoIcon from "@mui/icons-material/Info";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
@@ -73,6 +74,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 { label: "Dashboard", onClick: () => console.log("Dashboard") },
                 { label: "Reports", onClick: () => console.log("Reports") },
               ],
+            },
+            {
+              icon: <CategoryIcon />,
+              title: "Categories",
+              onClick: () => navigate("/categories"),
             },
             { icon: <SettingsIcon />, title: "Settings", onClick: () => navigate("/profile") },
             {

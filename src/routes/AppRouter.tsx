@@ -1,6 +1,9 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Home from '../pages/Home';
+import Categories from '../pages/Categories';
+import Category from '../pages/Category';
+import SubCategory from '../pages/SubCategory';
 import Profile from '../pages/Profile';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
@@ -28,6 +31,30 @@ const AppRouter: React.FC = () => {
         element={
           <ProtectedRoute>
             <Home />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/categories"
+        element={
+          <ProtectedRoute>
+            <Categories />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/categories/:categoryName/subcategories"
+        element={
+          <ProtectedRoute>
+            <Category />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/categories/:categoryName/subcategories/:subCategoryName"
+        element={
+          <ProtectedRoute>
+            <SubCategory />
           </ProtectedRoute>
         }
       />

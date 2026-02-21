@@ -4,6 +4,7 @@ export type SidebarItem = {
   icon: ReactNode;
   title: string;
   submenuItems?: SubmenuItem[];
+  onClick?: () => void;
 };
 
 export type SubmenuItem = {
