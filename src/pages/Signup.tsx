@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
-  Card,
-  TextField,
-  Button,
-  Typography,
+  Alert,
   Box,
+  Button,
+  Card,
   IconButton,
   InputAdornment,
   Link,
-  Alert,
+  TextField,
+  Typography,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
@@ -17,15 +17,25 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import AuthLayout from '../layouts/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
+import { extractErrorMessage } from '../utils/error';
+
+const passwordRules = z
+  .string()
+  .min(8, 'Password must be at least 8 characters')
+  .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+  .regex(/\d/, 'Password must contain at least one number');
 
 const signupSchema = z
   .object({
-    username: z.string().min(3, 'Username must be at least 3 characters'),
+    display_name: z
+      .string()
+      .min(1, 'Display name is required')
+      .max(100, 'Display name must be 100 characters or fewer'),
     email: z.string().email('Invalid email address'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: passwordRules,
     confirmPassword: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((d) => d.password === d.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
   });
@@ -34,9 +44,9 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { register: registerUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string>('');
 
   const {
@@ -50,84 +60,84 @@ const Signup: React.FC = () => {
   const onSubmit = async (data: SignupFormData) => {
     try {
       setError('');
-      await signup(data.username, data.email, data.password);
+      await registerUser({
+        display_name: data.display_name,
+        email: data.email,
+        password: data.password,
+      });
       navigate('/');
     } catch (err) {
-      setError('Failed to create account. Please try again.');
+      setError(extractErrorMessage(err, 'Failed to create account. Please try again.'));
     }
   };
 
   return (
     <AuthLayout>
       <Card
-        className="w-full max-w-md p-8 shadow-lg"
         sx={{
           width: '100%',
           maxWidth: '28rem',
           padding: '2rem',
+          borderRadius: 3,
+          boxShadow: 6,
         }}
       >
-        <Box className="mb-6">
-          <Typography
-            variant="h4"
-            component="h1"
-            className="text-center font-bold mb-2"
-            sx={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
-          >
+        <Box sx={{ mb: 3, textAlign: 'center' }}>
+          <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
             Create Account
           </Typography>
-          <Typography
-            variant="body2"
-            className="text-center text-gray-600 dark:text-gray-400"
-            color="text.secondary"
-          >
-            Sign up to get started
+          <Typography variant="body2" color="text.secondary">
+            Join Tick 8 and start mastering knowledge
           </Typography>
         </Box>
 
         {error && (
-          <Alert severity="error" className="mb-4">
+          <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField
             fullWidth
-            label="Username"
-            {...register('username')}
-            error={!!errors.username}
-            helperText={errors.username?.message}
-            className="mb-4"
-            sx={{ marginBottom: '1rem' }}
+            label="Display Name"
+            autoComplete="name"
+            {...register('display_name')}
+            error={!!errors.display_name}
+            helperText={errors.display_name?.message}
+            sx={{ mb: 2 }}
           />
 
           <TextField
             fullWidth
             label="Email"
             type="email"
+            autoComplete="email"
             {...register('email')}
             error={!!errors.email}
             helperText={errors.email?.message}
-            className="mb-4"
-            sx={{ marginBottom: '1rem' }}
+            sx={{ mb: 2 }}
           />
 
           <TextField
             fullWidth
             label="Password"
             type={showPassword ? 'text' : 'password'}
+            autoComplete="new-password"
             {...register('password')}
             error={!!errors.password}
-            helperText={errors.password?.message}
-            className="mb-4"
-            sx={{ marginBottom: '1rem' }}
+            helperText={
+              errors.password?.message ||
+              'At least 8 characters, one uppercase letter, and one number'
+            }
+            sx={{ mb: 2 }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowPassword((p) => !p)}
                     edge="end"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -139,20 +149,21 @@ const Signup: React.FC = () => {
           <TextField
             fullWidth
             label="Confirm Password"
-            type={showConfirmPassword ? 'text' : 'password'}
+            type={showConfirm ? 'text' : 'password'}
+            autoComplete="new-password"
             {...register('confirmPassword')}
             error={!!errors.confirmPassword}
             helperText={errors.confirmPassword?.message}
-            className="mb-6"
-            sx={{ marginBottom: '1.5rem' }}
+            sx={{ mb: 3 }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={() => setShowConfirm((p) => !p)}
                     edge="end"
+                    aria-label={showConfirm ? 'Hide password' : 'Show password'}
                   >
-                    {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                    {showConfirm ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
               ),
@@ -164,31 +175,14 @@ const Signup: React.FC = () => {
             fullWidth
             variant="contained"
             disabled={isSubmitting}
-            className="mb-4 py-3"
-            sx={{
-              marginBottom: '1rem',
-              padding: '0.75rem',
-              backgroundColor: 'primary.main',
-              '&:hover': {
-                backgroundColor: 'primary.dark',
-              },
-            }}
+            sx={{ py: 1.5, mb: 2 }}
           >
-            {isSubmitting ? 'Creating account...' : 'Sign Up'}
+            {isSubmitting ? 'Creating account…' : 'Sign Up'}
           </Button>
 
-          <Typography
-            variant="body2"
-            className="text-center"
-            sx={{ textAlign: 'center' }}
-          >
+          <Typography variant="body2" textAlign="center">
             Already have an account?{' '}
-            <Link
-              component={RouterLink}
-              to="/login"
-              className="text-primary hover:underline"
-              sx={{ color: 'primary.main' }}
-            >
+            <Link component={RouterLink} to="/login" sx={{ color: 'primary.main' }}>
               Log in
             </Link>
           </Typography>

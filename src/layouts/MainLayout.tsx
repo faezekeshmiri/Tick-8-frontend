@@ -1,31 +1,35 @@
 import React, { ReactNode, useEffect, useState } from "react";
-import { AppBar, Box, Button, Paper, Toolbar, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { createTheme } from "@mui/material/styles";
 import { useMediaQuery } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import SettingsIcon from "@mui/icons-material/Settings";
 import InfoIcon from "@mui/icons-material/Info";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import { SidebarAvatar } from "../types/Sidebar.types";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 interface MainLayoutProps {
   children: ReactNode;
   direction?: "ltr" | "rtl";
 }
 
-const avatarData: SidebarAvatar = {
-  name: "Jane Doe",
-  imageUrl: "https://randomuser.me/api/portraits/women/44.jpg",
-  // imageUrl: "",
-  email: "jane.doe@example.com",
-};
-
 const MainLayout: React.FC<MainLayoutProps> = ({
   children,
   direction = "ltr",
 }) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+
+  const avatarData: SidebarAvatar = {
+    name: user?.display_name ?? "User",
+    imageUrl: user?.avatar_url ?? "",
+    email: user?.email ?? "",
+  };
   const [dir, setDir] = useState<"ltr" | "rtl">(direction);
   const HEADER_HEIGHT = 64;
 
@@ -70,7 +74,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 { label: "Reports", onClick: () => console.log("Reports") },
               ],
             },
-            { icon: <SettingsIcon />, title: "Settings" },
+            { icon: <SettingsIcon />, title: "Settings", onClick: () => navigate("/profile") },
             {
               icon: <InfoIcon />,
               title: "About",
@@ -79,6 +83,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 { label: "Reports", onClick: () => console.log("Reports") },
               ],
             },
+            ...(user?.role === "admin"
+              ? [{ icon: <AdminPanelSettingsIcon />, title: "Admin", onClick: () => navigate("/admin") }]
+              : []),
           ]}
           avatar={avatarData}
         />

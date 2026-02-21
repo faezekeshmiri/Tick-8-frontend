@@ -1,56 +1,94 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-
-interface User {
-  id: string;
-  username: string;
-  email: string;
-}
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  ReactNode,
+} from 'react';
+import * as authApi from '../api/auth';
+import { setAccessToken } from '../api/client';
+import { AuthUser, LoginPayload, RegisterPayload, UpdateProfilePayload } from '../types/auth.types';
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (username: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  isLoading: boolean;
+  login: (payload: LoginPayload) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<void>;
+  logout: () => Promise<void>;
+  updateUser: (user: AuthUser) => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const initialized = useRef(false);
 
-  const login = async (email: string, password: string) => {
-    // TODO: Replace with actual API call
-    const mockUser = {
-      id: '1',
-      username: email.split('@')[0],
-      email,
+  // Attempt silent refresh on first mount to restore session from cookie
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
+    authApi
+      .refreshToken()
+      .then((u) => setUser(u))
+      .catch(() => {
+        setAccessToken(null);
+        setUser(null);
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  // Listen for forced logout (e.g. refresh failed in axios interceptor)
+  useEffect(() => {
+    const handler = () => {
+      setUser(null);
+      setAccessToken(null);
     };
-    setUser(mockUser);
-  };
+    window.addEventListener('auth:logout', handler);
+    return () => window.removeEventListener('auth:logout', handler);
+  }, []);
 
-  const signup = async (username: string, email: string, password: string) => {
-    // TODO: Replace with actual API call
-    const mockUser = {
-      id: '1',
-      username,
-      email,
-    };
-    setUser(mockUser);
-  };
+  const login = useCallback(async (payload: LoginPayload) => {
+    const { user: u } = await authApi.login(payload);
+    setUser(u);
+  }, []);
 
-  const logout = () => {
+  const register = useCallback(async (payload: RegisterPayload) => {
+    const { user: u } = await authApi.register(payload);
+    setUser(u);
+  }, []);
+
+  const logout = useCallback(async () => {
+    await authApi.logout();
     setUser(null);
-  };
+  }, []);
+
+  const updateUser = useCallback((u: AuthUser) => {
+    setUser(u);
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    const u = await authApi.getMe();
+    setUser(u);
+  }, []);
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: !!user,
+        isLoading,
         login,
-        signup,
+        register,
         logout,
+        updateUser,
+        refreshUser,
       }}
     >
       {children}
@@ -58,10 +96,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+export const useAuth = (): AuthContextType => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within an AuthProvider');
+  return ctx;
 };

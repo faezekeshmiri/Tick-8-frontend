@@ -1,30 +1,34 @@
-import React, { useState, useEffect, createContext } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import AppRouter from './routes/AppRouter';
-import MainLayout from "./layouts/MainLayout";
+import MainLayout from './layouts/MainLayout';
 import { AuthProvider } from './contexts/AuthContext';
-import { lightTheme } from './assets/theme';
-import { darkTheme } from './assets/theme';
+import EmailVerificationBanner from './components/EmailVerificationBanner';
+import { lightTheme, darkTheme } from './assets/theme';
 
 export const ThemeModeContext = createContext<{ isDarkMode: boolean; toggleTheme: () => void }>({
   isDarkMode: false,
   toggleTheme: () => {},
 });
 
+const AUTH_PATHS = [
+  '/login',
+  '/signup',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+];
+
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const toggleTheme = () => setIsDarkMode((prev) => !prev);
   const location = useLocation();
 
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
+  const isAuthPage = AUTH_PATHS.some((p) => location.pathname.startsWith(p));
 
   useEffect(() => {
-    if (isDarkMode) {
-      document.body.classList.add('dark');
-    } else {
-      document.body.classList.remove('dark');
-    }
+    document.body.classList.toggle('dark', isDarkMode);
   }, [isDarkMode]);
 
   return (
@@ -36,6 +40,7 @@ const App: React.FC = () => {
             <AppRouter />
           ) : (
             <MainLayout direction="ltr">
+              <EmailVerificationBanner />
               <AppRouter />
             </MainLayout>
           )}

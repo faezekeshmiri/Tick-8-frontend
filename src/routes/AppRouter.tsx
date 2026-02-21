@@ -1,18 +1,62 @@
-// src/routes/AppRouter.tsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 import Home from '../pages/Home';
 import Profile from '../pages/Profile';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
-import React from 'react';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
+import VerifyEmail from '../pages/VerifyEmail';
+import AdminDashboard from '../pages/admin/AdminDashboard';
+import UserManagement from '../pages/admin/UserManagement';
+import ProtectedRoute from './ProtectedRoute';
+import AdminRoute from './AdminRoute';
 
 const AppRouter: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/profile" element={<Profile />} />
+      {/* Public auth routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+
+      {/* Protected user routes */}
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Admin routes */}
+      <Route
+        path="/admin"
+        element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute>
+            <UserManagement />
+          </AdminRoute>
+        }
+      />
     </Routes>
   );
 };

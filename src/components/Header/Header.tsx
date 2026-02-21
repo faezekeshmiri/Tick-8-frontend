@@ -15,6 +15,9 @@ const Header: React.FC = () => {
   const theme = useTheme();
   const isRTL = theme.direction === "rtl";
   const { isAuthenticated, logout } = useAuth();
+  const handleLogout = () => {
+    logout().catch(console.error);
+  };
 
   return (
     <AppBar
@@ -45,7 +48,7 @@ const Header: React.FC = () => {
         {/* Buttons */}
         <Box className="flex gap-2">
           {isAuthenticated ? (
-            <HeaderMenu onLogout={logout} />
+            <HeaderMenu onLogout={handleLogout} />
           ) : (
             <>
               <Button
