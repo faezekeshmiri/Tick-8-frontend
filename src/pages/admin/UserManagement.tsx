@@ -10,9 +10,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   InputAdornment,
+  InputLabel,
+  MenuItem,
   Pagination,
   Paper,
+  Select,
   Snackbar,
   Table,
   TableBody,
@@ -27,28 +31,41 @@ import { Search } from '@mui/icons-material';
 import * as adminApi from '../../api/admin';
 import { AdminUserView } from '../../types/auth.types';
 import { extractErrorMessage } from '../../utils/error';
+import { useAuth } from '../../contexts/AuthContext';
 
 const PAGE_SIZE = 20;
 
+type RoleFilter = 'all' | 'user' | 'admin';
+type StatusFilter = 'all' | 'active' | 'suspended';
+
 const UserManagement: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<AdminUserView[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     userId: number;
-    action: 'suspend' | 'reactivate' | 'make-admin';
+    action: 'suspend' | 'reactivate' | 'make-admin' | 'remove-admin';
     name: string;
   } | null>(null);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await adminApi.listUsers({ search: search || undefined, page, page_size: PAGE_SIZE });
+      const res = await adminApi.listUsers({
+        search: search || undefined,
+        role: roleFilter === 'all' ? undefined : roleFilter,
+        is_active: statusFilter === 'all' ? undefined : statusFilter === 'active',
+        page,
+        page_size: PAGE_SIZE,
+      });
       setUsers(res.users);
       setTotal(res.total);
     } catch (err) {
@@ -56,7 +73,7 @@ const UserManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [search, page]);
+  }, [search, roleFilter, statusFilter, page]);
 
   useEffect(() => {
     fetchUsers();
@@ -68,9 +85,19 @@ const UserManagement: React.FC = () => {
     setPage(1);
   };
 
+  const handleRoleChange = (e: { target: { value: unknown } }) => {
+    setRoleFilter(e.target.value as RoleFilter);
+    setPage(1);
+  };
+
+  const handleStatusChange = (e: { target: { value: unknown } }) => {
+    setStatusFilter(e.target.value as StatusFilter);
+    setPage(1);
+  };
+
   const openConfirm = (
     userId: number,
-    action: 'suspend' | 'reactivate' | 'make-admin',
+    action: 'suspend' | 'reactivate' | 'make-admin' | 'remove-admin',
     name: string
   ) => setConfirmDialog({ open: true, userId, action, name });
 
@@ -82,7 +109,8 @@ const UserManagement: React.FC = () => {
       let updated: AdminUserView;
       if (action === 'suspend') updated = await adminApi.suspendUser(userId);
       else if (action === 'reactivate') updated = await adminApi.reactivateUser(userId);
-      else updated = await adminApi.makeAdmin(userId);
+      else if (action === 'make-admin') updated = await adminApi.makeAdmin(userId);
+      else updated = await adminApi.removeAdmin(userId);
 
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
       setToast({ message: 'Action completed successfully.', severity: 'success' });
@@ -94,30 +122,52 @@ const UserManagement: React.FC = () => {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" fontWeight="bold" gutterBottom>
-        User Management
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        {total} registered user{total !== 1 ? 's' : ''}
+    <Box>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        {total} user{total !== 1 ? 's' : ''} matching filters
       </Typography>
 
-      {/* Search */}
-      <Box component="form" onSubmit={handleSearchSubmit} sx={{ mb: 3, maxWidth: 400 }}>
-        <TextField
-          fullWidth
-          size="small"
-          placeholder="Search by name or email…"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search fontSize="small" />
-              </InputAdornment>
-            ),
-          }}
-        />
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, alignItems: 'center' }}>
+        <Box component="form" onSubmit={handleSearchSubmit} sx={{ minWidth: 240, maxWidth: 320 }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Search by name or email…"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+          />
+        </Box>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>Role</InputLabel>
+          <Select
+            value={roleFilter}
+            label="Role"
+            onChange={handleRoleChange}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="user">User</MenuItem>
+            <MenuItem value="admin">Admin</MenuItem>
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 130 }}>
+          <InputLabel>Status</InputLabel>
+          <Select
+            value={statusFilter}
+            label="Status"
+            onChange={handleStatusChange}
+          >
+            <MenuItem value="all">All</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="suspended">Suspended</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
 
       {loading ? (
@@ -187,8 +237,8 @@ const UserManagement: React.FC = () => {
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
-                        {u.role !== 'admin' && (
+                      <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        {u.role !== 'admin' ? (
                           <>
                             {u.is_active ? (
                               <Button
@@ -217,6 +267,17 @@ const UserManagement: React.FC = () => {
                               Make Admin
                             </Button>
                           </>
+                        ) : (
+                          currentUser?.id !== u.id && (
+                            <Button
+                              size="small"
+                              color="secondary"
+                              variant="outlined"
+                              onClick={() => openConfirm(u.id, 'remove-admin', u.display_name)}
+                            >
+                              Remove Admin
+                            </Button>
+                          )
                         )}
                       </Box>
                     </TableCell>
@@ -249,10 +310,17 @@ const UserManagement: React.FC = () => {
             `Reactivate ${confirmDialog.name}? They will regain full access.`}
           {confirmDialog?.action === 'make-admin' &&
             `Promote ${confirmDialog.name} to Administrator? This grants full platform access.`}
+          {confirmDialog?.action === 'remove-admin' &&
+            `Remove administrator role from ${confirmDialog.name}? They will become a regular user.`}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmDialog(null)}>Cancel</Button>
-          <Button onClick={handleConfirm} variant="contained" color="primary" autoFocus>
+          <Button
+            onClick={handleConfirm}
+            variant="contained"
+            color={confirmDialog?.action === 'make-admin' || confirmDialog?.action === 'remove-admin' ? 'secondary' : 'primary'}
+            autoFocus
+          >
             Confirm
           </Button>
         </DialogActions>

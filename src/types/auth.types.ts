@@ -60,3 +60,10 @@ export interface AdminUserListResponse {
   page: number;
   page_size: number;
 }
+
+export interface AdminStats {
+  total_users: number;
+  active_users: number;
+  suspended_users: number;
+  admin_count: number;
+}
