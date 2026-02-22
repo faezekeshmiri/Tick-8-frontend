@@ -4,6 +4,7 @@ import Home from '../pages/Home';
 import Categories from '../pages/Categories';
 import Category from '../pages/Category';
 import SubCategory from '../pages/SubCategory';
+import StudySession from '../pages/StudySession';
 import Profile from '../pages/Profile';
 import Trash from '../pages/Trash';
 import Login from '../pages/Login';
@@ -37,6 +38,7 @@ const AppRouter: React.FC = () => {
         path="/categories/:categoryId/subcategories/:subCategoryId"
         element={<ProtectedRoute><SubCategory /></ProtectedRoute>}
       />
+      <Route path="/study" element={<ProtectedRoute><StudySession /></ProtectedRoute>} />
       <Route path="/trash" element={<ProtectedRoute><Trash /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 

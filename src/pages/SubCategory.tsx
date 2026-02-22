@@ -59,8 +59,22 @@ import {
 } from "../api/flashcards";
 import { getSubCategory } from "../api/subcategories";
 import { getCategory } from "../api/categories";
+import {
+  getSubcategoryCardProgress,
+  getSubcategoryProgress,
+  getTodaysQueue,
+  getStudySettings,
+  updateStudySettings,
+  setProgressTicks,
+} from "../api/study";
 import { uploadImage, resolveImageUrl } from "../api/upload";
 import type { Category, Flashcard, FlashcardSide, SubCategory } from "../types/content.types";
+import type {
+  SubcategoryProgressResponse,
+  TickMark,
+  UserStudySettingsResponse,
+} from "../types/study.types";
+import type { MarkType } from "../components/Flashcard/Flashcard";
 import FlashcardComponent from "../components/Flashcard";
 import RichTextEditor from "../components/RichTextEditor";
 import { extractErrorMessage } from "../utils/error";
@@ -257,16 +271,28 @@ const emptyFlashcardSide = (): FlashcardSide => ({ type: 'text', text: null, ima
 
 // ─── Sortable flashcard item (drag-and-drop) ───────────────────────────────────
 
+/** Map MarkType to backend TickMark: tick → remembered, x → forgot. */
+const marksToTickMarks = (front: MarkType[], back: MarkType[]): TickMark[] => [
+  ...front.map((m) => (m === "tick" ? "remembered" : "forgot")),
+  ...back.map((m) => (m === "tick" ? "remembered" : "forgot")),
+];
+
 interface SortableFlashcardItemProps {
   card: Flashcard;
+  progressId: number | null;
+  progressMarks?: TickMark[];
   onEdit: () => void;
   onDelete: () => void;
+  onMarksChange: (progressId: number, frontMarks: MarkType[], backMarks: MarkType[]) => void;
 }
 
 const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
   card,
+  progressId,
+  progressMarks,
   onEdit,
   onDelete,
+  onMarksChange,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const {
@@ -283,6 +309,15 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
     transition,
   };
 
+  const handleMarksChange = useCallback(
+    (frontMarks: MarkType[], backMarks: MarkType[]) => {
+      if (progressId != null && progressId > 0) {
+        onMarksChange(progressId, frontMarks, backMarks);
+      }
+    },
+    [progressId, onMarksChange]
+  );
+
   return (
     <Box
       ref={setNodeRef}
@@ -291,10 +326,14 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
       sx={{ opacity: isDragging ? 0.5 : 1 }}
     >
       <Box sx={{ position: "relative", display: "inline-block" }}>
-        {/* Card — flip arrow stays top-right inside the card */}
-        <FlashcardComponent front={card.front} back={card.back} />
+        <FlashcardComponent
+          front={card.front}
+          back={card.back}
+          progressMarks={progressMarks}
+          onMarksChange={handleMarksChange}
+        />
 
-        {/* Top-left: drag handle + three-dot menu side by side */}
+        {/* Top-left: drag handle + three-dot menu */}
         <Box
           sx={{
             position: "absolute",
@@ -341,6 +380,7 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
           </Tooltip>
         </Box>
       </Box>
+
       <Menu
         anchorEl={menuAnchor}
         open={Boolean(menuAnchor)}
@@ -375,6 +415,25 @@ const SubCategoryPage: React.FC = () => {
   // ── breadcrumb data ──────────────────────────────────────────────────────────
   const [category, setCategory] = useState<Category | null>(null);
   const [subCategory, setSubCategory] = useState<SubCategory | null>(null);
+  const [progress, setProgress] = useState<SubcategoryProgressResponse | null>(null);
+  const [cardProgressMap, setCardProgressMap] = useState<
+    Map<number, { progress_id: number; marks: TickMark[] }>
+  >(new Map());
+  const [dueTodayProgressIds, setDueTodayProgressIds] = useState<Set<number>>(new Set());
+  const [studySettings, setStudySettings] = useState<UserStudySettingsResponse | null>(null);
+  const dueTodayProgressIdsRef = useRef<Set<number>>(new Set());
+  const studySettingsRef = useRef<UserStudySettingsResponse | null>(null);
+  const cardProgressMapRef = useRef<Map<number, { progress_id: number; marks: TickMark[] }>>(new Map());
+  const saveTicksTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [offScheduleDialog, setOffScheduleDialog] = useState<{
+    open: boolean;
+    progressId: number | null;
+    frontMarks: MarkType[] | null;
+    backMarks: MarkType[] | null;
+    rememberMe: boolean;
+  }>({ open: false, progressId: null, frontMarks: null, backMarks: null, rememberMe: false });
+  /** When set, override displayed marks for that progress so the card reverts until dialog is closed. */
+  const [revertedMarks, setRevertedMarks] = useState<Record<number, TickMark[]>>({});
 
   // ── flashcard list ───────────────────────────────────────────────────────────
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -400,10 +459,22 @@ const SubCategoryPage: React.FC = () => {
   const [deleteTarget, setDeleteTarget] = useState<Flashcard | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  // ── load breadcrumbs ─────────────────────────────────────────────────────────
+  // ── load breadcrumbs, progress summary, today's queue, study settings ─────────
   useEffect(() => {
     getCategory(catId).then(setCategory).catch(() => {});
     getSubCategory(subId).then(setSubCategory).catch(() => {});
+    getSubcategoryProgress(subId).then(setProgress).catch(() => {});
+    getTodaysQueue()
+      .then((data) => {
+        const ids = new Set(data.queue.map((q) => q.progress_id));
+        dueTodayProgressIdsRef.current = ids;
+        setDueTodayProgressIds(ids);
+      })
+      .catch(() => {});
+    getStudySettings().then((d) => {
+      studySettingsRef.current = d;
+      setStudySettings(d);
+    }).catch(() => {});
   }, [catId, subId]);
 
   // ── fetch flashcards ─────────────────────────────────────────────────────────
@@ -415,6 +486,18 @@ const SubCategoryPage: React.FC = () => {
       setFlashcards(data.items);
       setTotal(data.total);
       setPages(data.pages);
+      getSubcategoryCardProgress(subId)
+        .then((res) => {
+          const map = new Map<number, { progress_id: number; marks: TickMark[] }>();
+          (res.card_progress ?? []).forEach((item) =>
+            map.set(item.flashcard_id, {
+              progress_id: item.progress_id,
+              marks: item.marks ?? [],
+            })
+          );
+          setCardProgressMap(map);
+        })
+        .catch(() => {});
     } catch (err) {
       setListError(extractErrorMessage(err, "Failed to load flashcards."));
     } finally {
@@ -423,6 +506,10 @@ const SubCategoryPage: React.FC = () => {
   }, [subId, search, page]);
 
   useEffect(() => { fetchCards(); }, [fetchCards]);
+
+  useEffect(() => {
+    cardProgressMapRef.current = cardProgressMap;
+  }, [cardProgressMap]);
 
   // ── search ───────────────────────────────────────────────────────────────────
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -503,6 +590,110 @@ const SubCategoryPage: React.FC = () => {
     }
   };
 
+  const performSaveTicks = useCallback(
+    async (progressId: number, frontMarks: MarkType[], backMarks: MarkType[]) => {
+      const marks = marksToTickMarks(frontMarks, backMarks);
+      try {
+        await setProgressTicks(progressId, marks);
+        const res = await getSubcategoryCardProgress(subId);
+        const map = new Map<number, { progress_id: number; marks: TickMark[] }>();
+        (res.card_progress ?? []).forEach((item) =>
+          map.set(item.flashcard_id, {
+            progress_id: item.progress_id,
+            marks: item.marks ?? [],
+          })
+        );
+        setCardProgressMap(map);
+        getSubcategoryProgress(subId).then(setProgress).catch(() => {});
+        getTodaysQueue()
+          .then((data) => {
+            const ids = new Set(data.queue.map((q) => q.progress_id));
+            dueTodayProgressIdsRef.current = ids;
+            setDueTodayProgressIds(ids);
+          })
+          .catch(() => {});
+      } catch {
+        // optional: toast
+      }
+    },
+    [subId]
+  );
+
+  // ── persist strip edits (debounced); show off-schedule dialog when card not due today ─
+  const handleMarksChange = useCallback(
+    (progressId: number, frontMarks: MarkType[], backMarks: MarkType[]) => {
+      const isDueToday = dueTodayProgressIdsRef.current.has(progressId);
+      const skipPrompt = studySettingsRef.current?.skip_off_schedule_progress_prompt ?? false;
+
+      if (!isDueToday && !skipPrompt) {
+        const map = cardProgressMapRef.current;
+        const saved = Array.from(map.values()).find((p) => p.progress_id === progressId);
+        const savedMarks = saved?.marks ?? [];
+        setRevertedMarks((prev) => ({ ...prev, [progressId]: savedMarks }));
+        setOffScheduleDialog({
+          open: true,
+          progressId,
+          frontMarks,
+          backMarks,
+          rememberMe: false,
+        });
+        return;
+      }
+
+      if (saveTicksTimeoutRef.current) clearTimeout(saveTicksTimeoutRef.current);
+      saveTicksTimeoutRef.current = setTimeout(() => {
+        saveTicksTimeoutRef.current = null;
+        performSaveTicks(progressId, frontMarks, backMarks);
+      }, 400);
+    },
+    [performSaveTicks]
+  );
+
+  const handleOffScheduleConfirm = useCallback(async () => {
+    const { progressId, frontMarks, backMarks, rememberMe } = offScheduleDialog;
+    if (progressId == null || frontMarks == null || backMarks == null) return;
+    if (rememberMe) {
+      try {
+        await updateStudySettings({ skip_off_schedule_progress_prompt: true });
+        setStudySettings((prev) =>
+          prev ? { ...prev, skip_off_schedule_progress_prompt: true } : null
+        );
+      } catch {
+        // optional: toast
+      }
+    }
+    setOffScheduleDialog({
+      open: false,
+      progressId: null,
+      frontMarks: null,
+      backMarks: null,
+      rememberMe: false,
+    });
+    setRevertedMarks((prev) => {
+      const next = { ...prev };
+      delete next[progressId];
+      return next;
+    });
+    await performSaveTicks(progressId, frontMarks, backMarks);
+  }, [offScheduleDialog, performSaveTicks]);
+
+  const handleOffScheduleCancel = useCallback(() => {
+    const progressId = offScheduleDialog.progressId;
+    setOffScheduleDialog({
+      open: false,
+      progressId: null,
+      frontMarks: null,
+      backMarks: null,
+      rememberMe: false,
+    });
+    if (progressId != null) {
+      const map = cardProgressMapRef.current;
+      const saved = Array.from(map.values()).find((p) => p.progress_id === progressId);
+      const savedMarks = saved?.marks ?? [];
+      setRevertedMarks((prev) => ({ ...prev, [progressId]: [...savedMarks] }));
+    }
+  }, [offScheduleDialog.progressId]);
+
   // ── drag-and-drop reorder ─────────────────────────────────────────────────────
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
@@ -567,6 +758,40 @@ const SubCategoryPage: React.FC = () => {
           <Chip label={`${total} flashcards`} variant="outlined" className="font-semibold" color="secondary" />
         </Box>
 
+        {progress != null && progress.total > 0 && (
+          <Box
+            className="rounded-xl border border-gray-200/70 p-4 mb-4"
+            sx={{ bgcolor: "background.paper" }}
+          >
+            <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+              Your progress
+            </Typography>
+            <Box className="flex flex-wrap items-center gap-4">
+              <Typography variant="body2" color="text.secondary">
+                Pending: <strong>{progress.pending}</strong>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Phase 1: <strong>{progress.phase1}</strong>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Phase 2: <strong>{progress.phase2}</strong>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Graduated (SRS): <strong>{progress.graduated}</strong>
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Long-term mastered: <strong>{progress.long_term_mastered}</strong>
+              </Typography>
+              <Typography variant="body2" fontWeight={600}>
+                Mastery: {progress.mastery_percent}%
+              </Typography>
+              {progress.mastery_percent >= 100 && (
+                <Chip label="Mastered" color="success" size="small" />
+              )}
+            </Box>
+          </Box>
+        )}
+
         <Divider className="my-4" />
 
         {/* ── Search ── */}
@@ -609,14 +834,23 @@ const SubCategoryPage: React.FC = () => {
                 strategy={rectSortingStrategy}
               >
                 <Box className="flex flex-wrap gap-6">
-                  {flashcards.map((card) => (
-                    <SortableFlashcardItem
-                      key={card.id}
-                      card={card}
-                      onEdit={() => openEditDialog(card)}
-                      onDelete={() => setDeleteTarget(card)}
-                    />
-                  ))}
+                  {flashcards.map((card) => {
+                    const cardProgress = cardProgressMap.get(card.id);
+                    const progressId = cardProgress?.progress_id ?? null;
+                    const marksOverride = progressId != null ? revertedMarks[progressId] : undefined;
+                    const progressMarks = marksOverride ?? cardProgress?.marks;
+                    return (
+                      <SortableFlashcardItem
+                        key={card.id}
+                        card={card}
+                        progressId={progressId}
+                        progressMarks={progressMarks}
+                        onEdit={() => openEditDialog(card)}
+                        onDelete={() => setDeleteTarget(card)}
+                        onMarksChange={handleMarksChange}
+                      />
+                    );
+                  })}
                 </Box>
               </SortableContext>
             </DndContext>
@@ -684,6 +918,45 @@ const SubCategoryPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* ── Off-schedule progress confirmation ── */}
+      <Dialog
+        open={offScheduleDialog.open}
+        onClose={handleOffScheduleCancel}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Not due for review today</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            This card is not scheduled for review today. Updating progress now may change your
+            Tick 8 schedule. Do you want to continue?
+          </Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={offScheduleDialog.rememberMe}
+                onChange={(e) =>
+                  setOffScheduleDialog((prev) => ({ ...prev, rememberMe: e.target.checked }))
+                }
+              />
+            }
+            label={
+              <Typography variant="body2">Don&apos;t ask again (change in Profile → Study preferences)</Typography>
+            }
+          />
+        </DialogContent>
+        <DialogActions className="px-3 pb-3 gap-1">
+          <Button onClick={handleOffScheduleCancel} variant="text">
+            Cancel
+          </Button>
+          <Button variant="contained" onClick={handleOffScheduleConfirm}>
+            Continue
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Box>
   );
 };

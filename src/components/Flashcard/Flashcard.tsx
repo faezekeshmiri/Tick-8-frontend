@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import IconButton from "@mui/material/IconButton";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CircleIcon from "@mui/icons-material/Circle";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import RemoveIcon from "@mui/icons-material/Remove";
 import Typography from "@mui/material/Typography";
+import type { TickMark } from '../../types/study.types';
 import Box from "@mui/material/Box";
 import { alpha, useTheme } from "@mui/material/styles";
 import { resolveImageUrl } from '../../api/upload';
@@ -25,9 +24,23 @@ interface FlashcardProps {
   front: FlashcardSideContent;
   back: FlashcardSideContent;
   color?: string;
+  /**
+   * When provided, initializes the interactive Tick 8 strip from backend (Phase 1 = front, Phase 2 = back).
+   * User can still edit marks (toggle tick/x, remove). remembered → tick, forgot → x.
+   */
+  progressMarks?: TickMark[];
+  /** When provided, called when the user changes front or back marks (so parent can persist). */
+  onMarksChange?: (frontMarks: MarkType[], backMarks: MarkType[]) => void;
+  /**
+   * When "study", the card is used in study session: no flip button, no footer,
+   * and flip is controlled by the parent via `revealed`.
+   */
+  mode?: 'default' | 'study';
+  /** Only used when mode === "study": true = show back side, false = show front. */
+  revealed?: boolean;
 }
 
-// Legacy props for backwards compatibility (used by Home.tsx demo)
+// Legacy props for backwards compatibility
 interface LegacyFlashcardProps {
   word: string;
   type: string;
@@ -47,7 +60,7 @@ function isLegacy(p: CombinedProps): p is LegacyFlashcardProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const MAX_TICKS = 8;
-type MarkType = 'tick' | 'x';
+export type MarkType = 'tick' | 'x';
 
 /** Returns true if the string contains an HTML tag (i.e. was created in rich-text mode). */
 const containsHtml = (text: string): boolean => /<[a-z][\s\S]*>/i.test(text);
@@ -77,7 +90,6 @@ const SideContent: React.FC<{ content: FlashcardSideContent; inverted?: boolean 
   const text = content.text ?? '';
 
   if (containsHtml(text)) {
-    // Rich-text content: render as HTML
     return (
       <Box
         dangerouslySetInnerHTML={{ __html: text }}
@@ -102,7 +114,6 @@ const SideContent: React.FC<{ content: FlashcardSideContent; inverted?: boolean 
     );
   }
 
-  // Plain text content
   return (
     <Typography
       variant="h6"
@@ -116,13 +127,41 @@ const SideContent: React.FC<{ content: FlashcardSideContent; inverted?: boolean 
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
+/** Map backend TickMark to interactive MarkType: remembered → tick, forgot → x. */
+const toMarkType = (m: TickMark): MarkType => (m === 'remembered' ? 'tick' : 'x');
+
 const Flashcard: React.FC<CombinedProps> = (props) => {
-  const [flipped, setFlipped] = useState(false);
+  const [internalFlipped, setInternalFlipped] = useState(false);
   const [frontMarks, setFrontMarks] = useState<MarkType[]>([]);
   const [backMarks, setBackMarks] = useState<MarkType[]>([]);
   const [hoveredFrontIndex, setHoveredFrontIndex] = useState<number | null>(null);
   const [hoveredBackIndex, setHoveredBackIndex] = useState<number | null>(null);
   const theme = useTheme();
+
+  const isStudyMode = !isLegacy(props) && (props as FlashcardProps).mode === 'study';
+  const revealed = !isLegacy(props) && 'revealed' in props ? (props as FlashcardProps).revealed : false;
+  const flipped = isStudyMode ? revealed : internalFlipped;
+  const setFlipped = setInternalFlipped;
+
+  const progressMarks = !isLegacy(props) && 'progressMarks' in props ? (props as FlashcardProps).progressMarks : undefined;
+  const onMarksChange = !isLegacy(props) && 'onMarksChange' in props ? (props as FlashcardProps).onMarksChange : undefined;
+  const showFooter = !isStudyMode;
+  const userDidEditRef = useRef(false);
+
+  // Sync interactive marks from backend when progressMarks is provided (so user can then edit)
+  React.useEffect(() => {
+    if (progressMarks === undefined) return;
+    userDidEditRef.current = false;
+    setFrontMarks(progressMarks.slice(0, 8).map(toMarkType));
+    setBackMarks(progressMarks.slice(8, 16).map(toMarkType));
+  }, [progressMarks]);
+
+  // Persist when user edits marks (add/toggle/remove)
+  React.useEffect(() => {
+    if (!onMarksChange || !userDidEditRef.current || isStudyMode) return;
+    onMarksChange(frontMarks, backMarks);
+    userDidEditRef.current = false;
+  }, [frontMarks, backMarks, onMarksChange, isStudyMode]);
 
   // Normalise props
   const frontContent: FlashcardSideContent = isLegacy(props)
@@ -135,11 +174,13 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
 
   const handleAddFrontMark = (markType: MarkType) => (e: React.MouseEvent) => {
     e.stopPropagation();
+    userDidEditRef.current = true;
     setFrontMarks((prev) => (prev.length < MAX_TICKS ? [...prev, markType] : prev));
   };
 
   const handleAddBackMark = (markType: MarkType) => (e: React.MouseEvent) => {
     e.stopPropagation();
+    userDidEditRef.current = true;
     setBackMarks((prev) => (prev.length < MAX_TICKS ? [...prev, markType] : prev));
   };
 
@@ -149,6 +190,7 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
     setHoveredIndex: React.Dispatch<React.SetStateAction<number | null>>,
   ) => (e: React.MouseEvent) => {
     e.stopPropagation();
+    userDidEditRef.current = true;
     setMarks((prev) => prev.filter((_, i) => i !== index));
     setHoveredIndex(null);
   };
@@ -158,12 +200,14 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
     index: number,
   ) => (e: React.MouseEvent) => {
     e.stopPropagation();
+    userDidEditRef.current = true;
     setMarks((prev) =>
       prev.map((mark, i) => (i === index ? (mark === 'tick' ? 'x' : 'tick') : mark)),
     );
   };
 
-  const renderFooter = (
+  /** Interactive 8-dot footer: circles centered; add tick/x buttons on the right. */
+  const renderInteractiveFooter = (
     marks: MarkType[],
     onAddTick: (e: React.MouseEvent) => void,
     onAddX: (e: React.MouseEvent) => void,
@@ -173,11 +217,19 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
   ) => (
     <Box
       sx={{
-        display: 'flex', alignItems: 'center', gap: 1,
-        position: 'absolute', left: 0, bottom: 8, width: '100%',
-        justifyContent: 'center', zIndex: 2, mb: 0.5,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        position: 'absolute',
+        left: 0,
+        bottom: 8,
+        width: '100%',
+        justifyContent: 'center',
+        zIndex: 2,
+        mb: 0.5,
       }}
     >
+      <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flex: 1 }}>
       {[...Array(MAX_TICKS)].map((_, i) => {
         const isFilled = i < marks.length;
         const isHovered = hoveredIndex === i && isFilled;
@@ -231,10 +283,11 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
           </Box>
         );
       })}
-      <IconButton size="small" onClick={onAddTick} color="success" sx={{ ml: 0.5, bgcolor: alpha(theme.palette.common.white, 0.18) }} disabled={marks.length >= MAX_TICKS}>
+      </Box>
+      <IconButton size="small" onClick={onAddTick} color="success" sx={{ flexShrink: 0, bgcolor: alpha(theme.palette.common.white, 0.18) }} disabled={marks.length >= MAX_TICKS}>
         <CheckIcon fontSize="medium" color={marks.length < MAX_TICKS ? 'success' : 'disabled'} />
       </IconButton>
-      <IconButton size="small" onClick={onAddX} color="error" sx={{ bgcolor: alpha(theme.palette.common.white, 0.18) }} disabled={marks.length >= MAX_TICKS}>
+      <IconButton size="small" onClick={onAddX} color="error" sx={{ flexShrink: 0, bgcolor: alpha(theme.palette.common.white, 0.18) }} disabled={marks.length >= MAX_TICKS}>
         <ClearIcon fontSize="medium" color={marks.length < MAX_TICKS ? 'error' : 'disabled'} />
       </IconButton>
     </Box>
@@ -262,11 +315,10 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
             gap: 0.5, px: 3, py: 4,
           }}
         >
-          <SideContent content={frontContent} />
-          <IconButton aria-label="flip" onClick={() => setFlipped(true)} sx={{ position: 'absolute', right: 8, top: 8 }}>
-            <ArrowForwardIcon />
-          </IconButton>
-          {renderFooter(frontMarks, handleAddFrontMark('tick'), handleAddFrontMark('x'), hoveredFrontIndex, setHoveredFrontIndex, setFrontMarks)}
+          <Box onClick={() => !isStudyMode && setFlipped(true)} sx={{ cursor: isStudyMode ? 'default' : 'pointer', flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <SideContent content={frontContent} />
+          </Box>
+          {showFooter && renderInteractiveFooter(frontMarks, handleAddFrontMark('tick'), handleAddFrontMark('x'), hoveredFrontIndex, setHoveredFrontIndex, setFrontMarks)}
         </CardContent>
 
         {/* Back */}
@@ -281,11 +333,10 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
             gap: 0.5, px: 3, py: 4, borderRadius: 3,
           }}
         >
-          <SideContent content={backContent} inverted />
-          <IconButton aria-label="flip-back" onClick={() => setFlipped(false)} sx={{ position: 'absolute', right: 8, top: 8, color: '#fff' }}>
-            <ArrowBackIcon />
-          </IconButton>
-          {renderFooter(backMarks, handleAddBackMark('tick'), handleAddBackMark('x'), hoveredBackIndex, setHoveredBackIndex, setBackMarks)}
+          <Box onClick={() => !isStudyMode && setFlipped(false)} sx={{ cursor: isStudyMode ? 'default' : 'pointer', flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <SideContent content={backContent} inverted />
+          </Box>
+          {showFooter && renderInteractiveFooter(backMarks, handleAddBackMark('tick'), handleAddBackMark('x'), hoveredBackIndex, setHoveredBackIndex, setBackMarks)}
         </CardContent>
       </Card>
     </Box>
