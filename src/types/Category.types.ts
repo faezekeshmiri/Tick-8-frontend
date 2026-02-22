@@ -1,5 +1,1 @@
-export type SubCategory = {
-  name: string;
-  description: string;
-  color: string;
-};
+export type { SubCategory } from './content.types';

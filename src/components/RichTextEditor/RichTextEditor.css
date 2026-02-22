@@ -1,0 +1,35 @@
+/* Placeholder text shown when editor is empty */
+.tiptap p.is-editor-empty:first-child::before {
+  color: rgba(0, 0, 0, 0.42);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Dark-mode placeholder */
+.dark .tiptap p.is-editor-empty:first-child::before {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+/* Reset default ProseMirror outline — handled by the container */
+.tiptap.ProseMirror {
+  outline: none;
+}
+
+/* Tight paragraph and list spacing inside the card */
+.tiptap p {
+  margin: 0 0 0.25em;
+}
+.tiptap p:last-child {
+  margin-bottom: 0;
+}
+.tiptap ul,
+.tiptap ol {
+  padding-left: 1.4em;
+  margin: 0 0 0.25em;
+}
+.tiptap ul:last-child,
+.tiptap ol:last-child {
+  margin-bottom: 0;
+}

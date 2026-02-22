@@ -1,319 +1,399 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Box,
-  Typography,
-  Card,
-  CardContent,
-  CardActions,
-  Chip,
-  Fab,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
   Button,
+  Card,
+  CardActions,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
+  Fab,
   IconButton,
+  InputAdornment,
+  Pagination,
+  TextField,
+  Typography,
+  Alert,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
-import type { Category } from "../types/Categories.types";
+import SearchIcon from "@mui/icons-material/Search";
+import FolderOpenIcon from "@mui/icons-material/FolderOpen";
+import { useNavigate } from "react-router-dom";
+import {
+  createCategory,
+  deleteCategory,
+  listCategories,
+  updateCategory,
+} from "../api/categories";
+import type { Category } from "../types/content.types";
+import { extractErrorMessage } from "../utils/error";
+
+const PER_PAGE = 12;
 
 const Categories: React.FC = () => {
-  const [categories, setCategories] = useState<Category[]>([
-    {
-      name: "Vocabulary",
-      description: "Core words you want to remember and review.",
-    },
-    {
-      name: "Phrasal Verbs",
-      description: "Everyday verb phrases for fluent conversations.",
-    },
-    {
-      name: "Idioms",
-      description: "Common expressions to sound more natural.",
-    },
-    {
-      name: "Business English",
-      description: "Professional language for work and meetings.",
-    },
-    {
-      name: "Travel",
-      description: "Useful phrases for trips and adventures.",
-    },
-    {
-      name: "Academic",
-      description: "Study-focused terms and formal language.",
-    },
-  ]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const categoriesSorted = useMemo(
-    () => [...categories].sort((a, b) => a.name.localeCompare(b.name)),
-    [categories]
-  );
+  // ── list state ──────────────────────────────────────────────────────────────
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [total, setTotal] = useState(0);
+  const [pages, setPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [listError, setListError] = useState("");
 
-  const handleOpenDialog = () => {
+  // ── create / edit dialog ────────────────────────────────────────────────────
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [formTitle, setFormTitle] = useState("");
+  const [formDescription, setFormDescription] = useState("");
+  const [formError, setFormError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  // ── delete confirmation dialog ───────────────────────────────────────────────
+  const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // ── fetch ───────────────────────────────────────────────────────────────────
+  const fetchCategories = useCallback(async () => {
+    setLoading(true);
+    setListError("");
+    try {
+      const data = await listCategories({ search: search || undefined, page, per_page: PER_PAGE });
+      setCategories(data.items);
+      setTotal(data.total);
+      setPages(data.pages);
+    } catch (err) {
+      setListError(extractErrorMessage(err, "Failed to load categories."));
+    } finally {
+      setLoading(false);
+    }
+  }, [search, page]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
+  // ── search ──────────────────────────────────────────────────────────────────
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    setSearch(searchInput);
+  };
+
+  // ── create / edit ────────────────────────────────────────────────────────────
+  const openCreateDialog = () => {
+    setEditingCategory(null);
+    setFormTitle("");
+    setFormDescription("");
+    setFormError("");
     setIsDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
+  const openEditDialog = (cat: Category) => {
+    setEditingCategory(cat);
+    setFormTitle(cat.title);
+    setFormDescription(cat.description ?? "");
+    setFormError("");
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
     setIsDialogOpen(false);
-    setNewCategory("");
-    setNewDescription("");
-    setEditingIndex(null);
-    setError("");
+    setFormError("");
   };
 
-  const handleAddCategory = () => {
-    const trimmed = newCategory.trim();
-    if (!trimmed) {
-      setError("Please enter a category name.");
+  const handleSave = async () => {
+    const trimmedTitle = formTitle.trim();
+    if (!trimmedTitle) {
+      setFormError("Title is required.");
       return;
     }
-    const exists = categories.some((category, index) => {
-      if (editingIndex !== null && index === editingIndex) {
-        return false;
+    setSaving(true);
+    setFormError("");
+    try {
+      if (editingCategory) {
+        await updateCategory(editingCategory.id, {
+          title: trimmedTitle,
+          description: formDescription.trim() || null,
+        });
+      } else {
+        await createCategory({
+          title: trimmedTitle,
+          description: formDescription.trim() || null,
+        });
       }
-      return category.name.toLowerCase() === trimmed.toLowerCase();
-    });
-    if (exists) {
-      setError("This category already exists.");
-      return;
+      closeDialog();
+      setPage(1);
+      fetchCategories();
+    } catch (err) {
+      setFormError(extractErrorMessage(err, "Failed to save category."));
+    } finally {
+      setSaving(false);
     }
-    const nextDescription = newDescription.trim();
-    if (editingIndex === null) {
-      setCategories((prev) => [
-        ...prev,
-        { name: trimmed, description: nextDescription || "No description yet." },
-      ]);
-    } else {
-      setCategories((prev) =>
-        prev.map((category, index) =>
-          index === editingIndex
-            ? {
-                ...category,
-                name: trimmed,
-                description: nextDescription || "No description yet.",
-              }
-            : category
-        )
-      );
-    }
-    handleCloseDialog();
   };
 
-  const handleEditCategory = (category: Category) => {
-    const index = categories.findIndex(
-      (item) => item.name === category.name
-    );
-    setEditingIndex(index);
-    setNewCategory(category.name);
-    setNewDescription(category.description);
-    setIsDialogOpen(true);
-  };
-
-  const handleDeleteCategory = (categoryName: string) => {
-    setCategories((prev) =>
-      prev.filter((category) => category.name !== categoryName)
-    );
+  // ── delete ──────────────────────────────────────────────────────────────────
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteCategory(deleteTarget.id);
+      setDeleteTarget(null);
+      if (categories.length === 1 && page > 1) setPage((p) => p - 1);
+      else fetchCategories();
+    } catch (err) {
+      // stay in dialog on error — show snackbar or just close
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
     <Box className="w-full">
       <Box className="mx-auto w-full px-4 pb-20 pt-6 sm:px-6 lg:px-8">
+        {/* ── Header ── */}
         <Box className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Box>
             <Typography variant="h4" className="font-bold">
               Categories
             </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              className="mt-1"
-            >
-              Organize your study sets by topic and keep everything easy to
-              find.
+            <Typography variant="body1" color="text.secondary" className="mt-1">
+              Organize your study sets by topic.
             </Typography>
           </Box>
           <Chip
-            label={`${categories.length} total`}
+            label={`${total} total`}
             color="secondary"
             variant="outlined"
             className="font-semibold"
           />
         </Box>
 
-        <Divider className="my-3" />
+        <Divider className="my-4" />
 
-        {categoriesSorted.length === 0 ? (
+        {/* ── Search bar ── */}
+        <Box component="form" onSubmit={handleSearchSubmit} className="mb-5 flex gap-2">
+          <TextField
+            size="small"
+            placeholder="Search categories…"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ flex: 1, maxWidth: 400 }}
+          />
+          <Button type="submit" variant="outlined" size="small">
+            Search
+          </Button>
+          {search && (
+            <Button
+              variant="text"
+              size="small"
+              onClick={() => { setSearchInput(""); setSearch(""); setPage(1); }}
+            >
+              Clear
+            </Button>
+          )}
+        </Box>
+
+        {/* ── Error ── */}
+        {listError && (
+          <Alert severity="error" className="mb-4">
+            {listError}
+          </Alert>
+        )}
+
+        {/* ── Loading ── */}
+        {loading ? (
+          <Box className="flex justify-center py-16">
+            <CircularProgress />
+          </Box>
+        ) : categories.length === 0 ? (
           <Card className="border border-dashed border-gray-200/70">
             <CardContent className="py-12 text-center">
-              <Typography variant="h6" className="font-semibold">
-                No categories yet
+              <FolderOpenIcon sx={{ fontSize: 48 }} color="disabled" />
+              <Typography variant="h6" className="font-semibold mt-3">
+                {search ? "No categories match your search." : "No categories yet"}
               </Typography>
-              <Typography variant="body2" color="text.secondary" className="mt-2">
-                Create your first category to start organizing your flashcards.
+              <Typography variant="body2" color="text.secondary" className="mt-1">
+                {search ? "Try a different keyword." : "Create your first category to get started."}
               </Typography>
             </CardContent>
           </Card>
         ) : (
-          <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {categoriesSorted.map((category) => (
-              <Card
-                key={category.name}
-                className="border border-gray-100/70 shadow-sm"
-                sx={{
-                  cursor: "pointer",
-                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: "0 12px 24px rgba(15, 23, 42, 0.08)",
-                  },
-                }}
-                onClick={() =>
-                  navigate(
-                    `/categories/${encodeURIComponent(
-                      category.name
-                    )}/subcategories`
-                  )
-                }
-              >
-                <CardContent>
-                  <Box className="flex items-start justify-between gap-3">
-                    <Box>
-                      <Typography variant="subtitle1" className="font-semibold">
-                        {category.name}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        className="mt-1"
-                      >
-                        {category.description}
-                      </Typography>
+          <>
+            <Box className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {categories.map((cat) => (
+                <Card
+                  key={cat.id}
+                  className="border border-gray-100/70 shadow-sm"
+                  sx={{
+                    cursor: "pointer",
+                    transition: "transform 0.2s ease, box-shadow 0.2s ease",
+                    "&:hover": {
+                      transform: "translateY(-4px)",
+                      boxShadow: "0 12px 24px rgba(15,23,42,0.08)",
+                    },
+                  }}
+                  onClick={() => navigate(`/categories/${cat.id}/subcategories`)}
+                >
+                  <CardContent>
+                    <Box className="flex items-start justify-between gap-3">
+                      <Box className="min-w-0">
+                        <Typography variant="subtitle1" className="font-semibold truncate">
+                          {cat.title}
+                        </Typography>
+                        {cat.description && (
+                          <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            className="mt-1 line-clamp-2"
+                          >
+                            {cat.description}
+                          </Typography>
+                        )}
+                      </Box>
                     </Box>
-                    <Chip
-                      label="Active"
+                    <Box className="mt-3 flex gap-2 flex-wrap">
+                      <Chip
+                        label={`${cat.subcategory_count} subcategories`}
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                      />
+                      <Chip
+                        label={`${cat.flashcard_count} flashcards`}
+                        size="small"
+                        variant="outlined"
+                        color="secondary"
+                      />
+                    </Box>
+                  </CardContent>
+                  <CardActions className="px-2 pb-2 gap-1">
+                    <Button
                       size="small"
-                      color="primary"
-                      variant="outlined"
-                    />
-                  </Box>
-                </CardContent>
-                <CardActions className="px-2 pb-2 gap-1">
-                  <Button
-                    size="small"
-                    startIcon={<EditIcon />}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleEditCategory(category);
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    size="small"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleDeleteCategory(category.name);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                </CardActions>
-              </Card>
-            ))}
-          </Box>
+                      startIcon={<EditIcon />}
+                      onClick={(e) => { e.stopPropagation(); openEditDialog(cat); }}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="small"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(cat); }}
+                    >
+                      Delete
+                    </Button>
+                  </CardActions>
+                </Card>
+              ))}
+            </Box>
+
+            {pages > 1 && (
+              <Box className="flex justify-center mt-6">
+                <Pagination
+                  count={pages}
+                  page={page}
+                  onChange={(_, v) => setPage(v)}
+                  color="primary"
+                />
+              </Box>
+            )}
+          </>
         )}
       </Box>
 
+      {/* ── FAB ── */}
       <Fab
         color="primary"
         aria-label="add category"
-        onClick={handleOpenDialog}
+        onClick={openCreateDialog}
         sx={{
           position: "fixed",
           right: { xs: 16, sm: 24 },
           bottom: { xs: 16, sm: 24 },
-          boxShadow: "0 16px 32px rgba(0, 0, 0, 0.15)",
+          boxShadow: "0 16px 32px rgba(0,0,0,0.15)",
         }}
       >
         <AddIcon />
       </Fab>
 
-      <Dialog
-        open={isDialogOpen}
-        onClose={handleCloseDialog}
-        fullWidth
-        maxWidth="xs"
-        PaperProps={{
-          sx: {
-            overflowX: "hidden",
-          },
-        }}
-      >
+      {/* ── Create / Edit dialog ── */}
+      <Dialog open={isDialogOpen} onClose={closeDialog} fullWidth maxWidth="xs">
         <DialogTitle className="flex items-center justify-between py-3 px-3">
-          {editingIndex === null ? "Add new category" : "Edit category"}
-          <IconButton aria-label="close" onClick={handleCloseDialog}>
+          {editingCategory ? "Edit category" : "New category"}
+          <IconButton aria-label="close" onClick={closeDialog} size="small">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent className="pb-0 px-3" sx={{ overflowX: "hidden" }}>
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            className="mb-3"
-          >
-            Give your category a clear, descriptive name.
-          </Typography>
+        <DialogContent className="pb-0 px-3">
           <TextField
             autoFocus
             fullWidth
-            label="Category name"
-            value={newCategory}
-            onChange={(event) => {
-              setNewCategory(event.target.value);
-              if (error) {
-                setError("");
-              }
-            }}
-            error={!!error}
-            helperText={error || " "}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                handleAddCategory();
-              }
-            }}
+            label="Title"
+            value={formTitle}
+            onChange={(e) => { setFormTitle(e.target.value); setFormError(""); }}
+            error={!!formError && !formTitle.trim()}
+            helperText={(!!formError && !formTitle.trim()) ? formError : " "}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSave(); } }}
           />
           <TextField
             fullWidth
-            label="Description"
-            value={newDescription}
-            onChange={(event) => setNewDescription(event.target.value)}
+            label="Description (optional)"
+            value={formDescription}
+            onChange={(e) => setFormDescription(e.target.value)}
             multiline
             minRows={3}
             className="mt-2 mb-1"
           />
+          {formError && formTitle.trim() && (
+            <Alert severity="error" className="mb-2">
+              {formError}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions className="px-3 pb-3 pt-2 gap-1">
-          <Button onClick={handleCloseDialog} variant="text">
+          <Button onClick={closeDialog} variant="text" disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={handleAddCategory} variant="contained">
-            {editingIndex === null ? "Save category" : "Update category"}
+          <Button onClick={handleSave} variant="contained" disabled={saving}>
+            {saving ? <CircularProgress size={18} /> : editingCategory ? "Update" : "Create"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Delete confirmation dialog ── */}
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete category?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Deleting <strong>"{deleteTarget?.title}"</strong> will also delete all subcategories
+            and flashcards inside it. This cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions className="px-3 pb-3 gap-1">
+          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleting}>
+            Cancel
+          </Button>
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={deleting}>
+            {deleting ? <CircularProgress size={18} /> : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

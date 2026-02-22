@@ -5,6 +5,7 @@ import Categories from '../pages/Categories';
 import Category from '../pages/Category';
 import SubCategory from '../pages/SubCategory';
 import Profile from '../pages/Profile';
+import Trash from '../pages/Trash';
 import Login from '../pages/Login';
 import Signup from '../pages/Signup';
 import ForgotPassword from '../pages/ForgotPassword';
@@ -26,64 +27,22 @@ const AppRouter: React.FC = () => {
       <Route path="/verify-email" element={<VerifyEmail />} />
 
       {/* Protected user routes */}
+      <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+      <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
       <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
-        }
+        path="/categories/:categoryId/subcategories"
+        element={<ProtectedRoute><Category /></ProtectedRoute>}
       />
       <Route
-        path="/categories"
-        element={
-          <ProtectedRoute>
-            <Categories />
-          </ProtectedRoute>
-        }
+        path="/categories/:categoryId/subcategories/:subCategoryId"
+        element={<ProtectedRoute><SubCategory /></ProtectedRoute>}
       />
-      <Route
-        path="/categories/:categoryName/subcategories"
-        element={
-          <ProtectedRoute>
-            <Category />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/categories/:categoryName/subcategories/:subCategoryName"
-        element={
-          <ProtectedRoute>
-            <SubCategory />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/trash" element={<ProtectedRoute><Trash /></ProtectedRoute>} />
+      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
       {/* Admin routes */}
-      <Route
-        path="/admin"
-        element={
-          <AdminRoute>
-            <AdminDashboard />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/admin/users"
-        element={
-          <AdminRoute>
-            <UserManagement />
-          </AdminRoute>
-        }
-      />
+      <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+      <Route path="/admin/users" element={<AdminRoute><UserManagement /></AdminRoute>} />
     </Routes>
   );
 };

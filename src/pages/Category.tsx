@@ -1,326 +1,322 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
+  Alert,
   Box,
-  Typography,
+  Button,
   Card,
   CardContent,
   Chip,
-  Fab,
+  CircularProgress,
   Dialog,
-  DialogTitle,
-  DialogContent,
   DialogActions,
-  TextField,
-  Button,
+  DialogContent,
+  DialogTitle,
   Divider,
+  Fab,
   IconButton,
+  InputAdornment,
+  Pagination,
+  TextField,
+  Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import LayersIcon from "@mui/icons-material/Layers";
 import { useNavigate, useParams } from "react-router-dom";
-import type { SubCategory } from "../types/Category.types";
+import {
+  createSubCategory,
+  deleteSubCategory,
+  listSubCategories,
+  updateSubCategory,
+} from "../api/subcategories";
+import { getCategory } from "../api/categories";
+import type { Category, SubCategory } from "../types/content.types";
 import SubCategoryCard from "../components/SubCategoryCard";
-import { hexToRgba } from "../utils/color";
+import { extractErrorMessage } from "../utils/error";
 
-const COLOR_OPTIONS = [
-  { name: "Sky", value: "#38bdf8" },
-  { name: "Emerald", value: "#10b981" },
-  { name: "Amber", value: "#f59e0b" },
-  { name: "Rose", value: "#fb7185" },
-  { name: "Violet", value: "#8b5cf6" },
-  { name: "Slate", value: "#64748b" },
-];
+const PER_PAGE = 12;
 
-const Category: React.FC = () => {
+const CategoryPage: React.FC = () => {
   const navigate = useNavigate();
-  const { categoryName } = useParams();
-  const decodedName = categoryName ? decodeURIComponent(categoryName) : "Category";
+  const { categoryId } = useParams<{ categoryId: string }>();
+  const catId = Number(categoryId);
 
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([
-    {
-      name: "Foundations",
-      description: "Core concepts and must-know items.",
-      color: COLOR_OPTIONS[0].value,
-    },
-    {
-      name: "Intermediate",
-      description: "Everyday usage with richer context.",
-      color: COLOR_OPTIONS[1].value,
-    },
-    {
-      name: "Advanced",
-      description: "Nuanced meaning and real-world examples.",
-      color: COLOR_OPTIONS[2].value,
-    },
-  ]);
+  // ── category ────────────────────────────────────────────────────────────────
+  const [category, setCategory] = useState<Category | null>(null);
+
+  // ── subcategories ───────────────────────────────────────────────────────────
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
+  const [total, setTotal] = useState(0);
+  const [pages, setPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [listError, setListError] = useState("");
+
+  // ── create / edit dialog ────────────────────────────────────────────────────
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newSubCategory, setNewSubCategory] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [selectedColor, setSelectedColor] = useState(COLOR_OPTIONS[0].value);
-  const [editingSubCategoryName, setEditingSubCategoryName] = useState<
-    string | null
-  >(null);
-  const [error, setError] = useState("");
+  const [editingSub, setEditingSub] = useState<SubCategory | null>(null);
+  const [formTitle, setFormTitle] = useState("");
+  const [formDescription, setFormDescription] = useState("");
+  const [formError, setFormError] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const subCategoriesSorted = useMemo(
-    () => [...subCategories].sort((a, b) => a.name.localeCompare(b.name)),
-    [subCategories]
-  );
+  // ── delete confirmation ──────────────────────────────────────────────────────
+  const [deleteTarget, setDeleteTarget] = useState<SubCategory | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const handleOpenDialog = () => {
-    setNewSubCategory("");
-    setNewDescription("");
-    setSelectedColor(COLOR_OPTIONS[0].value);
-    setEditingSubCategoryName(null);
-    setError("");
+  // ── load category info ───────────────────────────────────────────────────────
+  useEffect(() => {
+    getCategory(catId).then(setCategory).catch(() => {});
+  }, [catId]);
+
+  // ── fetch subcategories ──────────────────────────────────────────────────────
+  const fetchSubs = useCallback(async () => {
+    setLoading(true);
+    setListError("");
+    try {
+      const data = await listSubCategories(catId, {
+        search: search || undefined,
+        page,
+        per_page: PER_PAGE,
+      });
+      setSubCategories(data.items);
+      setTotal(data.total);
+      setPages(data.pages);
+    } catch (err) {
+      setListError(extractErrorMessage(err, "Failed to load subcategories."));
+    } finally {
+      setLoading(false);
+    }
+  }, [catId, search, page]);
+
+  useEffect(() => {
+    fetchSubs();
+  }, [fetchSubs]);
+
+  // ── search ──────────────────────────────────────────────────────────────────
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    setSearch(searchInput);
+  };
+
+  // ── create / edit ─────────────────────────────────────────────────────────────
+  const openCreateDialog = () => {
+    setEditingSub(null);
+    setFormTitle("");
+    setFormDescription("");
+    setFormError("");
     setIsDialogOpen(true);
   };
 
-  const handleCloseDialog = () => {
+  const openEditDialog = (sub: SubCategory) => {
+    setEditingSub(sub);
+    setFormTitle(sub.title);
+    setFormDescription(sub.description ?? "");
+    setFormError("");
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
     setIsDialogOpen(false);
-    setNewSubCategory("");
-    setNewDescription("");
-    setSelectedColor(COLOR_OPTIONS[0].value);
-    setEditingSubCategoryName(null);
-    setError("");
+    setFormError("");
   };
 
-  const handleSubmitSubCategory = () => {
-    const trimmed = newSubCategory.trim();
-    if (!trimmed) {
-      setError("Please enter a sub-category name.");
-      return;
+  const handleSave = async () => {
+    const trimmedTitle = formTitle.trim();
+    if (!trimmedTitle) { setFormError("Title is required."); return; }
+    setSaving(true);
+    setFormError("");
+    try {
+      if (editingSub) {
+        await updateSubCategory(editingSub.id, {
+          title: trimmedTitle,
+          description: formDescription.trim() || null,
+        });
+      } else {
+        await createSubCategory(catId, {
+          title: trimmedTitle,
+          description: formDescription.trim() || null,
+        });
+      }
+      closeDialog();
+      setPage(1);
+      fetchSubs();
+    } catch (err) {
+      setFormError(extractErrorMessage(err, "Failed to save subcategory."));
+    } finally {
+      setSaving(false);
     }
-    const exists = subCategories.some(
-      (item) =>
-        item.name.toLowerCase() === trimmed.toLowerCase() &&
-        item.name !== editingSubCategoryName
-    );
-    if (exists) {
-      setError("This sub-category already exists.");
-      return;
-    }
-    const nextDescription = newDescription.trim();
-    if (editingSubCategoryName === null) {
-      setSubCategories((prev) => [
-        ...prev,
-        {
-          name: trimmed,
-          description: nextDescription || "No description yet.",
-          color: selectedColor,
-        },
-      ]);
-    } else {
-      setSubCategories((prev) =>
-        prev.map((item) =>
-          item.name === editingSubCategoryName
-            ? {
-                ...item,
-                name: trimmed,
-                description: nextDescription || "No description yet.",
-                color: selectedColor,
-              }
-            : item
-        )
-      );
-    }
-    handleCloseDialog();
   };
 
-  const handleEditSubCategory = (item: SubCategory) => {
-    setEditingSubCategoryName(item.name);
-    setNewSubCategory(item.name);
-    setNewDescription(item.description);
-    setSelectedColor(item.color);
-    setError("");
-    setIsDialogOpen(true);
+  // ── delete ──────────────────────────────────────────────────────────────────
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await deleteSubCategory(deleteTarget.id);
+      setDeleteTarget(null);
+      if (subCategories.length === 1 && page > 1) setPage((p) => p - 1);
+      else fetchSubs();
+    } catch {
+      setDeleteTarget(null);
+    } finally {
+      setDeleting(false);
+    }
   };
 
-  const handleDeleteSubCategory = (name: string) => {
-    setSubCategories((prev) =>
-      prev.filter((subCategory) => subCategory.name !== name)
-    );
-  };
+  const categoryTitle = category?.title ?? "Category";
 
   return (
     <Box className="w-full">
       <Box className="mx-auto w-full px-4 pb-20 pt-6 sm:px-6 lg:px-8">
+        {/* ── Header ── */}
         <Box className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Box>
             <Box className="flex items-center gap-2">
-              <IconButton
-                aria-label="back to categories"
-                onClick={() => navigate("/categories")}
-              >
+              <IconButton aria-label="back" onClick={() => navigate("/categories")}>
                 <ArrowBackIcon />
               </IconButton>
               <Typography variant="h4" className="font-bold">
-                {decodedName}
+                {categoryTitle}
               </Typography>
             </Box>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              className="mt-1"
-            >
-              Manage sub-categories to keep this section organized.
-            </Typography>
+            {category?.description && (
+              <Typography variant="body1" color="text.secondary" className="mt-1 ml-12">
+                {category.description}
+              </Typography>
+            )}
           </Box>
           <Chip
-            label={`${subCategories.length} total`}
+            label={`${total} subcategories`}
             color="secondary"
             variant="outlined"
             className="font-semibold"
           />
         </Box>
 
-        <Divider className="my-5" />
-        {subCategoriesSorted.length === 0 ? (
+        <Divider className="my-4" />
+
+        {/* ── Search ── */}
+        <Box component="form" onSubmit={handleSearchSubmit} className="mb-5 flex gap-2">
+          <TextField
+            size="small"
+            placeholder="Search subcategories…"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <LayersIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ flex: 1, maxWidth: 400 }}
+          />
+          <Button type="submit" variant="outlined" size="small">Search</Button>
+          {search && (
+            <Button variant="text" size="small" onClick={() => { setSearchInput(""); setSearch(""); setPage(1); }}>
+              Clear
+            </Button>
+          )}
+        </Box>
+
+        {listError && <Alert severity="error" className="mb-4">{listError}</Alert>}
+
+        {/* ── Content ── */}
+        {loading ? (
+          <Box className="flex justify-center py-16"><CircularProgress /></Box>
+        ) : subCategories.length === 0 ? (
           <Card className="border border-dashed border-gray-200/70">
             <CardContent className="py-12 text-center">
               <Typography variant="h6" className="font-semibold">
-                No sub-categories yet
+                {search ? "No subcategories match your search." : "No subcategories yet"}
               </Typography>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                className="mt-2"
-              >
-                Add one to start organizing this category.
+              <Typography variant="body2" color="text.secondary" className="mt-1">
+                {search ? "Try a different keyword." : "Add one to start organizing this category."}
               </Typography>
             </CardContent>
           </Card>
         ) : (
-          <Box className="flex flex-wrap gap-6">
-            {subCategoriesSorted.map((item) => (
-              <SubCategoryCard
-                key={item.name}
-                item={item}
-                onClick={() =>
-                  navigate(
-                    `/categories/${encodeURIComponent(
-                      decodedName
-                    )}/subcategories/${encodeURIComponent(item.name)}`,
-                    { state: { subCategoryColor: item.color } }
-                  )
-                }
-                onEdit={() => handleEditSubCategory(item)}
-                onDelete={() => handleDeleteSubCategory(item.name)}
-              />
-            ))}
-          </Box>
+          <>
+            <Box className="flex flex-wrap gap-6">
+              {subCategories.map((sub) => (
+                <SubCategoryCard
+                  key={sub.id}
+                  item={sub}
+                  onClick={() => navigate(`/categories/${catId}/subcategories/${sub.id}`)}
+                  onEdit={() => openEditDialog(sub)}
+                  onDelete={() => setDeleteTarget(sub)}
+                />
+              ))}
+            </Box>
+            {pages > 1 && (
+              <Box className="flex justify-center mt-6">
+                <Pagination count={pages} page={page} onChange={(_, v) => setPage(v)} color="primary" />
+              </Box>
+            )}
+          </>
         )}
       </Box>
 
+      {/* ── FAB ── */}
       <Fab
         color="primary"
-        aria-label="add sub-category"
-        onClick={handleOpenDialog}
-        sx={{
-          position: "fixed",
-          right: { xs: 16, sm: 24 },
-          bottom: { xs: 16, sm: 24 },
-          boxShadow: "0 16px 32px rgba(0, 0, 0, 0.15)",
-        }}
+        aria-label="add subcategory"
+        onClick={openCreateDialog}
+        sx={{ position: "fixed", right: { xs: 16, sm: 24 }, bottom: { xs: 16, sm: 24 }, boxShadow: "0 16px 32px rgba(0,0,0,0.15)" }}
       >
         <AddIcon />
       </Fab>
 
-      <Dialog
-        open={isDialogOpen}
-        onClose={handleCloseDialog}
-        fullWidth
-        maxWidth="xs"
-        PaperProps={{
-          sx: {
-            overflowX: "hidden",
-          },
-        }}
-      >
-        <DialogTitle className="flex items-center justify-between px-3 py-3">
-          {editingSubCategoryName === null
-            ? "Add new sub-category"
-            : "Edit sub-category"}
-          <IconButton aria-label="close" onClick={handleCloseDialog}>
-            <CloseIcon />
-          </IconButton>
+      {/* ── Create / Edit dialog ── */}
+      <Dialog open={isDialogOpen} onClose={closeDialog} fullWidth maxWidth="xs">
+        <DialogTitle className="flex items-center justify-between py-3 px-3">
+          {editingSub ? "Edit subcategory" : "New subcategory"}
+          <IconButton aria-label="close" onClick={closeDialog} size="small"><CloseIcon /></IconButton>
         </DialogTitle>
-        <DialogContent className="px-3 pb-0 overflow-x-hidden">
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            className="mb-2"
-          >
-            Add a short description to make this section easy to recognize.
-          </Typography>
+        <DialogContent className="pb-0 px-3">
           <TextField
-            autoFocus
-            fullWidth
-            label="Sub-category name"
-            value={newSubCategory}
-            onChange={(event) => {
-              setNewSubCategory(event.target.value);
-              if (error) {
-                setError("");
-              }
-            }}
-            error={!!error}
-            helperText={error || " "}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                handleSubmitSubCategory();
-              }
-            }}
+            autoFocus fullWidth label="Title"
+            value={formTitle}
+            onChange={(e) => { setFormTitle(e.target.value); setFormError(""); }}
+            error={!!formError && !formTitle.trim()}
+            helperText={(!!formError && !formTitle.trim()) ? formError : " "}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSave(); } }}
           />
           <TextField
-            fullWidth
-            label="Description"
-            value={newDescription}
-            onChange={(event) => setNewDescription(event.target.value)}
-            multiline
-            minRows={3}
-            className="mt-2 mb-1"
+            fullWidth label="Description (optional)"
+            value={formDescription}
+            onChange={(e) => setFormDescription(e.target.value)}
+            multiline minRows={3} className="mt-2 mb-1"
           />
-          <Box className="mt-2">
-            <Typography variant="body2" color="text.secondary" className="mb-2">
-              Pick a color
-            </Typography>
-            <Box className="flex flex-wrap gap-2">
-              {COLOR_OPTIONS.map((option) => {
-                const isSelected = option.value === selectedColor;
-                return (
-                  <IconButton
-                    key={option.value}
-                    aria-label={`select ${option.name}`}
-                    onClick={() => setSelectedColor(option.value)}
-                    sx={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "50%",
-                      border: isSelected
-                        ? "2px solid rgba(15, 23, 42, 0.35)"
-                        : "1px solid rgba(15, 23, 42, 0.15)",
-                      bgcolor: option.value,
-                      boxShadow: isSelected
-                        ? `0 0 0 4px ${hexToRgba(option.value, 0.2)}`
-                        : "none",
-                    }}
-                  />
-                );
-              })}
-            </Box>
-          </Box>
+          {formError && formTitle.trim() && (
+            <Alert severity="error" className="mb-2">{formError}</Alert>
+          )}
         </DialogContent>
         <DialogActions className="px-3 pb-3 pt-2 gap-1">
-          <Button onClick={handleCloseDialog} variant="text">
-            Cancel
+          <Button onClick={closeDialog} variant="text" disabled={saving}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained" disabled={saving}>
+            {saving ? <CircularProgress size={18} /> : editingSub ? "Update" : "Create"}
           </Button>
-          <Button onClick={handleSubmitSubCategory} variant="contained">
-            {editingSubCategoryName === null
-              ? "Save sub-category"
-              : "Update sub-category"}
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Delete confirmation ── */}
+      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Delete subcategory?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            Deleting <strong>"{deleteTarget?.title}"</strong> will also delete all flashcards inside it.
+          </Typography>
+        </DialogContent>
+        <DialogActions className="px-3 pb-3 gap-1">
+          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleting}>Cancel</Button>
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={deleting}>
+            {deleting ? <CircularProgress size={18} /> : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -328,4 +324,4 @@ const Category: React.FC = () => {
   );
 };
 
-export default Category;
+export default CategoryPage;
