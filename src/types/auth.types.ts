@@ -67,3 +67,39 @@ export interface AdminStats {
   suspended_users: number;
   admin_count: number;
 }
+
+export interface AdminUserDetailStats {
+  categories_count: number;
+  subcategories_count: number;
+  flashcards_count: number;
+  cards_with_progress_count: number;
+  total_reviews_count: number;
+  progress_pending: number;
+  progress_phase1: number;
+  progress_phase2: number;
+  progress_graduated: number;
+  progress_long_term_mastered: number;
+}
+
+export interface AdminSubCategorySummary {
+  id: number;
+  title: string;
+  flashcards_count: number;
+  created_at: string;
+}
+
+export interface AdminCategorySummary {
+  id: number;
+  title: string;
+  description: string | null;
+  subcategories_count: number;
+  flashcards_count: number;
+  subcategories: AdminSubCategorySummary[];
+  created_at: string;
+}
+
+export interface AdminUserDetail {
+  user: AdminUserView;
+  stats: AdminUserDetailStats;
+  categories: AdminCategorySummary[];
+}

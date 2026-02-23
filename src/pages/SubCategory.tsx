@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -33,6 +33,7 @@ import {
   MenuItem,
   Pagination,
   Switch,
+  useTheme,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -50,6 +51,9 @@ import TextFieldsIcon from "@mui/icons-material/TextFields";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ThemeModeContext } from "../contexts/ThemeContext";
+import { lightTheme, darkTheme } from "../assets/theme";
 import {
   createFlashcard,
   deleteFlashcard,
@@ -59,6 +63,7 @@ import {
 } from "../api/flashcards";
 import { getSubCategory } from "../api/subcategories";
 import { getCategory } from "../api/categories";
+import { queryKeys } from "../api/queryKeys";
 import {
   getSubcategoryCardProgress,
   getSubcategoryProgress,
@@ -407,6 +412,8 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const SubCategoryPage: React.FC = () => {
+  const { isDarkMode } = useContext(ThemeModeContext);
+  const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const navigate = useNavigate();
   const { categoryId, subCategoryId } = useParams<{ categoryId: string; subCategoryId: string }>();
   const catId = Number(categoryId);
@@ -416,9 +423,6 @@ const SubCategoryPage: React.FC = () => {
   const [category, setCategory] = useState<Category | null>(null);
   const [subCategory, setSubCategory] = useState<SubCategory | null>(null);
   const [progress, setProgress] = useState<SubcategoryProgressResponse | null>(null);
-  const [cardProgressMap, setCardProgressMap] = useState<
-    Map<number, { progress_id: number; marks: TickMark[] }>
-  >(new Map());
   const [dueTodayProgressIds, setDueTodayProgressIds] = useState<Set<number>>(new Set());
   const [studySettings, setStudySettings] = useState<UserStudySettingsResponse | null>(null);
   const dueTodayProgressIdsRef = useRef<Set<number>>(new Set());
@@ -435,15 +439,70 @@ const SubCategoryPage: React.FC = () => {
   /** When set, override displayed marks for that progress so the card reverts until dialog is closed. */
   const [revertedMarks, setRevertedMarks] = useState<Record<number, TickMark[]>>({});
 
-  // ── flashcard list ───────────────────────────────────────────────────────────
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
-  const [total, setTotal] = useState(0);
-  const [pages, setPages] = useState(1);
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [listError, setListError] = useState("");
+
+  const {
+    data: flashcardsData,
+    isLoading: loading,
+    error: listErrorRaw,
+  } = useQuery({
+    queryKey: queryKeys.flashcards(subId, search, page),
+    queryFn: async () => {
+      const [listRes, progressRes] = await Promise.all([
+        listFlashcards(subId, { search: search || undefined, page, per_page: PER_PAGE }),
+        getSubcategoryCardProgress(subId),
+      ]);
+      const map = new Map<number, { progress_id: number; marks: TickMark[] }>();
+      (progressRes.card_progress ?? []).forEach((item) =>
+        map.set(item.flashcard_id, { progress_id: item.progress_id, marks: item.marks ?? [] })
+      );
+      return { items: listRes.items, total: listRes.total, pages: listRes.pages, cardProgressMap: map };
+    },
+    enabled: !!subId && !Number.isNaN(subId),
+  });
+
+  const flashcards = flashcardsData?.items ?? [];
+  const total = flashcardsData?.total ?? 0;
+  const pages = flashcardsData?.pages ?? 1;
+  const cardProgressMap = flashcardsData?.cardProgressMap ?? new Map<number, { progress_id: number; marks: TickMark[] }>();
+  const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, "Failed to load flashcards.") : "";
+
+  const saveFlashcardMutation = useMutation({
+    mutationFn: async (payload: { id?: number; front: FlashcardSide; back: FlashcardSide }) => {
+      if (payload.id) return updateFlashcard(payload.id, { front: payload.front, back: payload.back });
+      return createFlashcard(subId, { front: payload.front, back: payload.back });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.flashcards(subId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.subcategoryCardProgress(subId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.subcategory(subId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.subcategoryProgress(subId) });
+      closeDialog();
+      setPage(1);
+    },
+  });
+
+  const deleteFlashcardMutation = useMutation({
+    mutationFn: (id: number) => deleteFlashcard(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.flashcards(subId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.subcategoryCardProgress(subId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.subcategory(subId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.subcategoryProgress(subId) });
+      setDeleteTarget(null);
+    },
+  });
+
+  const reorderFlashcardsMutation = useMutation({
+    mutationFn: (reorderItems: { id: number; order_index: number }[]) =>
+      reorderFlashcards(subId, reorderItems),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.flashcards(subId) });
+    },
+  });
 
   // ── create / edit dialog ─────────────────────────────────────────────────────
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -452,12 +511,10 @@ const SubCategoryPage: React.FC = () => {
   const [formBack, setFormBack] = useState<FlashcardSide>(emptyFlashcardSide());
   const [frontError, setFrontError] = useState("");
   const [backError, setBackError] = useState("");
-  const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   // ── delete confirmation ──────────────────────────────────────────────────────
   const [deleteTarget, setDeleteTarget] = useState<Flashcard | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   // ── load breadcrumbs, progress summary, today's queue, study settings ─────────
   useEffect(() => {
@@ -476,36 +533,6 @@ const SubCategoryPage: React.FC = () => {
       setStudySettings(d);
     }).catch(() => {});
   }, [catId, subId]);
-
-  // ── fetch flashcards ─────────────────────────────────────────────────────────
-  const fetchCards = useCallback(async () => {
-    setLoading(true);
-    setListError("");
-    try {
-      const data = await listFlashcards(subId, { search: search || undefined, page, per_page: PER_PAGE });
-      setFlashcards(data.items);
-      setTotal(data.total);
-      setPages(data.pages);
-      getSubcategoryCardProgress(subId)
-        .then((res) => {
-          const map = new Map<number, { progress_id: number; marks: TickMark[] }>();
-          (res.card_progress ?? []).forEach((item) =>
-            map.set(item.flashcard_id, {
-              progress_id: item.progress_id,
-              marks: item.marks ?? [],
-            })
-          );
-          setCardProgressMap(map);
-        })
-        .catch(() => {});
-    } catch (err) {
-      setListError(extractErrorMessage(err, "Failed to load flashcards."));
-    } finally {
-      setLoading(false);
-    }
-  }, [subId, search, page]);
-
-  useEffect(() => { fetchCards(); }, [fetchCards]);
 
   useEffect(() => {
     cardProgressMapRef.current = cardProgressMap;
@@ -551,43 +578,23 @@ const SubCategoryPage: React.FC = () => {
     return true;
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     const frontOk = validateSide(formFront, setFrontError);
     const backOk = validateSide(formBack, setBackError);
     if (!frontOk || !backOk) return;
-
-    setSaving(true);
     setSaveError("");
-    try {
-      if (editingCard) {
-        await updateFlashcard(editingCard.id, { front: formFront, back: formBack });
-      } else {
-        await createFlashcard(subId, { front: formFront, back: formBack });
+    saveFlashcardMutation.mutate(
+      { id: editingCard?.id, front: formFront, back: formBack },
+      {
+        onError: (err) => setSaveError(extractErrorMessage(err, "Failed to save flashcard.")),
       }
-      closeDialog();
-      setPage(1);
-      fetchCards();
-    } catch (err) {
-      setSaveError(extractErrorMessage(err, "Failed to save flashcard."));
-    } finally {
-      setSaving(false);
-    }
+    );
   };
 
-  // ── delete ───────────────────────────────────────────────────────────────────
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      await deleteFlashcard(deleteTarget.id);
-      setDeleteTarget(null);
-      if (flashcards.length === 1 && page > 1) setPage((p) => p - 1);
-      else fetchCards();
-    } catch {
-      setDeleteTarget(null);
-    } finally {
-      setDeleting(false);
-    }
+    deleteFlashcardMutation.mutate(deleteTarget.id, { onError: () => setDeleteTarget(null) });
+    if (flashcards.length === 1 && page > 1) setPage((p) => p - 1);
   };
 
   const performSaveTicks = useCallback(
@@ -595,15 +602,8 @@ const SubCategoryPage: React.FC = () => {
       const marks = marksToTickMarks(frontMarks, backMarks);
       try {
         await setProgressTicks(progressId, marks);
-        const res = await getSubcategoryCardProgress(subId);
-        const map = new Map<number, { progress_id: number; marks: TickMark[] }>();
-        (res.card_progress ?? []).forEach((item) =>
-          map.set(item.flashcard_id, {
-            progress_id: item.progress_id,
-            marks: item.marks ?? [],
-          })
-        );
-        setCardProgressMap(map);
+        queryClient.invalidateQueries({ queryKey: queryKeys.flashcards(subId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.studyQueueWithCards() });
         getSubcategoryProgress(subId).then(setProgress).catch(() => {});
         getTodaysQueue()
           .then((data) => {
@@ -616,7 +616,7 @@ const SubCategoryPage: React.FC = () => {
         // optional: toast
       }
     },
-    [subId]
+    [subId, queryClient]
   );
 
   // ── persist strip edits (debounced); show off-schedule dialog when card not due today ─
@@ -696,7 +696,7 @@ const SubCategoryPage: React.FC = () => {
 
   // ── drag-and-drop reorder ─────────────────────────────────────────────────────
   const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
+    (event: DragEndEvent) => {
       const { active, over } = event;
       if (!over || active.id === over.id) return;
 
@@ -705,16 +705,10 @@ const SubCategoryPage: React.FC = () => {
       if (oldIndex === -1 || newIndex === -1) return;
 
       const newCards = arrayMove(flashcards, oldIndex, newIndex);
-      setFlashcards(newCards);
-
-      try {
-        const reorderPayload = newCards.map((c, i) => ({ id: c.id, order_index: i }));
-        await reorderFlashcards(subId, reorderPayload);
-      } catch {
-        fetchCards(); // revert on error
-      }
+      const reorderPayload = newCards.map((c, i) => ({ id: c.id, order_index: i }));
+      reorderFlashcardsMutation.mutate(reorderPayload);
     },
-    [flashcards, subId, fetchCards],
+    [flashcards, reorderFlashcardsMutation],
   );
 
   const sensors = useSensors(
@@ -833,7 +827,16 @@ const SubCategoryPage: React.FC = () => {
                 items={flashcards.map((c) => c.id)}
                 strategy={rectSortingStrategy}
               >
-                <Box className="flex flex-wrap gap-6">
+                <Box
+                  className="grid gap-4 sm:gap-6"
+                  sx={{
+                    gridTemplateColumns: {
+                      xs: "1fr",
+                      sm: "repeat(2, 1fr)",
+                      md: "repeat(3, 1fr)",
+                    },
+                  }}
+                >
                   {flashcards.map((card) => {
                     const cardProgress = cardProgressMap.get(card.id);
                     const progressId = cardProgress?.progress_id ?? null;
@@ -865,10 +868,22 @@ const SubCategoryPage: React.FC = () => {
 
       {/* ── FAB ── */}
       <Fab
-        color="primary"
         aria-label="add flashcard"
         onClick={openCreateDialog}
-        sx={{ position: "fixed", right: { xs: 16, sm: 24 }, bottom: { xs: 16, sm: 24 }, boxShadow: "0 16px 32px rgba(0,0,0,0.15)" }}
+        sx={{
+          position: "fixed",
+          right: { xs: 16, sm: 24 },
+          bottom: { xs: 16, sm: 24 },
+          backgroundColor: palette.primary.main,
+          color: palette.primary.contrastText,
+          boxShadow: isDarkMode
+            ? "0 16px 32px rgba(0,0,0,0.4)"
+            : "0 16px 32px rgba(0,0,0,0.15)",
+          "&:hover": {
+            backgroundColor: palette.primary.dark,
+            color: palette.primary.contrastText,
+          },
+        }}
       >
         <AddIcon />
       </Fab>
@@ -898,9 +913,9 @@ const SubCategoryPage: React.FC = () => {
           {saveError && <Alert severity="error">{saveError}</Alert>}
         </DialogContent>
         <DialogActions className="px-3 pb-3 pt-2 gap-1">
-          <Button onClick={closeDialog} variant="text" disabled={saving}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained" disabled={saving}>
-            {saving ? <CircularProgress size={18} /> : editingCard ? "Update" : "Create"}
+          <Button onClick={closeDialog} variant="text" disabled={saveFlashcardMutation.isPending}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained" disabled={saveFlashcardMutation.isPending}>
+            {saveFlashcardMutation.isPending ? <CircularProgress size={18} /> : editingCard ? "Update" : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -912,9 +927,9 @@ const SubCategoryPage: React.FC = () => {
           <Typography variant="body2">This flashcard will be moved to trash. You can restore it within 30 days.</Typography>
         </DialogContent>
         <DialogActions className="px-3 pb-3 gap-1">
-          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleting}>Cancel</Button>
-          <Button onClick={handleDelete} color="error" variant="contained" disabled={deleting}>
-            {deleting ? <CircularProgress size={18} /> : "Delete"}
+          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleteFlashcardMutation.isPending}>Cancel</Button>
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={deleteFlashcardMutation.isPending}>
+            {deleteFlashcardMutation.isPending ? <CircularProgress size={18} /> : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

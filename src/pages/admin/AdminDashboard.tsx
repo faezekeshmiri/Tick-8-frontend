@@ -118,7 +118,12 @@ const AdminDashboard: React.FC = () => {
             </TableHead>
             <TableBody>
               {recentUsers.map((u) => (
-                <TableRow key={u.id} hover>
+                <TableRow
+                  key={u.id}
+                  hover
+                  sx={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/admin/users/${u.id}`)}
+                >
                   <TableCell>{u.display_name}</TableCell>
                   <TableCell sx={{ color: 'text.secondary' }}>{u.email}</TableCell>
                   <TableCell>{u.role === 'admin' ? 'Admin' : 'User'}</TableCell>

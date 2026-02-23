@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Alert,
   Avatar,
@@ -27,7 +28,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { Search } from '@mui/icons-material';
+import { Search, Visibility as VisibilityIcon } from '@mui/icons-material';
 import * as adminApi from '../../api/admin';
 import { AdminUserView } from '../../types/auth.types';
 import { extractErrorMessage } from '../../utils/error';
@@ -39,6 +40,7 @@ type RoleFilter = 'all' | 'user' | 'admin';
 type StatusFilter = 'all' | 'active' | 'suspended';
 
 const UserManagement: React.FC = () => {
+  const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<AdminUserView[]>([]);
   const [total, setTotal] = useState(0);
@@ -191,7 +193,12 @@ const UserManagement: React.FC = () => {
               </TableHead>
               <TableBody>
                 {users.map((u) => (
-                  <TableRow key={u.id} hover>
+                  <TableRow
+                  key={u.id}
+                  hover
+                  sx={{ cursor: 'pointer' }}
+                  onClick={() => navigate(`/admin/users/${u.id}`)}
+                >
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Avatar
@@ -236,8 +243,16 @@ const UserManagement: React.FC = () => {
                         {new Date(u.created_at).toLocaleDateString()}
                       </Typography>
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                       <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<VisibilityIcon />}
+                          onClick={() => navigate(`/admin/users/${u.id}`)}
+                        >
+                          View details
+                        </Button>
                         {u.role !== 'admin' ? (
                           <>
                             {u.is_active ? (

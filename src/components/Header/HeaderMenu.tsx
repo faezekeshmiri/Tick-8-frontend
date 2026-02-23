@@ -6,13 +6,16 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { ThemeModeContext } from "../../App";
+import { ThemeModeContext } from "../../contexts/ThemeContext";
+import { lightTheme, darkTheme } from "../../assets/theme";
 
 type HeaderMenuProps = {
   onLogout: () => void;
 };
 
 export default function HeaderMenu({ onLogout }: HeaderMenuProps) {
+  const { isDarkMode, toggleTheme } = React.useContext(ThemeModeContext);
+  const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -26,8 +29,6 @@ export default function HeaderMenu({ onLogout }: HeaderMenuProps) {
     handleClose();
     onLogout();
   };
-
-  const { isDarkMode, toggleTheme } = React.useContext(ThemeModeContext);
 
   const handleDarkMode = () => {
     handleClose();

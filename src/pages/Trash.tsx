@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Alert,
   Box,
@@ -15,7 +15,9 @@ import RestoreIcon from "@mui/icons-material/Restore";
 import FolderIcon from "@mui/icons-material/Folder";
 import LayersIcon from "@mui/icons-material/Layers";
 import StyleIcon from "@mui/icons-material/Style";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { listTrash, restoreItem } from "../api/trash";
+import { queryKeys } from "../api/queryKeys";
 import type {
   TrashCategory,
   TrashFlashcard,
@@ -123,40 +125,34 @@ const Section: React.FC<SectionProps> = ({ title, icon, count, children }) => (
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const Trash: React.FC = () => {
-  const [data, setData] = useState<TrashResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
   const [restoringKey, setRestoringKey] = useState<string | null>(null);
   const [restoreError, setRestoreError] = useState("");
 
-  const fetchTrash = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      setData(await listTrash());
-    } catch (err) {
-      setError(extractErrorMessage(err, "Failed to load trash."));
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data, isLoading: loading, error: listError } = useQuery({
+    queryKey: queryKeys.trash(),
+    queryFn: listTrash,
+  });
 
-  useEffect(() => { fetchTrash(); }, [fetchTrash]);
+  const restoreMutation = useMutation({
+    mutationFn: ({ type, id }: { type: TrashItemType; id: number }) => restoreItem(type, id),
+    onMutate: ({ type, id }) => setRestoringKey(`${type}-${id}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.trash() });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      queryClient.invalidateQueries({ queryKey: ['subcategories'] });
+      queryClient.invalidateQueries({ queryKey: ['flashcards'] });
+    },
+    onSettled: () => setRestoringKey(null),
+    onError: (err) => setRestoreError(extractErrorMessage(err, "Failed to restore item.")),
+  });
 
-  const handleRestore = async (type: TrashItemType, id: number) => {
-    const key = `${type}-${id}`;
-    setRestoringKey(key);
+  const handleRestore = (type: TrashItemType, id: number) => {
     setRestoreError("");
-    try {
-      await restoreItem(type, id);
-      fetchTrash();
-    } catch (err) {
-      setRestoreError(extractErrorMessage(err, "Failed to restore item."));
-    } finally {
-      setRestoringKey(null);
-    }
+    restoreMutation.mutate({ type, id });
   };
 
+  const error = listError ? extractErrorMessage(listError, "Failed to load trash.") : "";
   const isEmpty =
     data && data.categories.length === 0 && data.subcategories.length === 0 && data.flashcards.length === 0;
 

@@ -16,7 +16,9 @@ const AdminLayout: React.FC = () => {
   const breadcrumbLabels: Record<string, string> = {
     '': 'Dashboard',
     users: 'User Management',
+    content: 'Manage content',
   };
+  const isUserIdSegment = (seg: string) => /^\d+$/.test(seg);
 
   const currentTab = location.pathname === '/admin' ? 0 : location.pathname.startsWith('/admin/users') ? 1 : 0;
 
@@ -35,7 +37,7 @@ const AdminLayout: React.FC = () => {
         </Link>
         {pathSegments.map((seg, i) => (
           <Typography key={seg} color="text.primary" variant="body2">
-            {breadcrumbLabels[seg] ?? seg}
+            {breadcrumbLabels[seg] ?? (isUserIdSegment(seg) ? 'User details' : seg)}
           </Typography>
         ))}
       </Breadcrumbs>

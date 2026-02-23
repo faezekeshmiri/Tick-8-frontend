@@ -11,6 +11,13 @@ export const queryKeys = {
   flashcards: (subCategoryId: number, search?: string, page?: number) =>
     ['flashcards', subCategoryId, search ?? '', page ?? 1] as const,
   trash: () => ['trash'] as const,
+  studyQueue: () => ['study', 'queue'] as const,
+  studyQueueWithCards: () => ['study', 'queue', 'with-cards'] as const,
+  studyUpcoming: (days?: number) => ['study', 'upcoming', days ?? 5] as const,
+  studyNextReviewDate: () => ['study', 'next-review-date'] as const,
+  studySettings: () => ['study', 'settings'] as const,
+  subcategoryProgress: (subId: number) => ['subcategories', subId, 'progress'] as const,
+  subcategoryCardProgress: (subId: number) => ['subcategories', subId, 'card-progress'] as const,
   adminStats: () => ['admin', 'stats'] as const,
   adminUsers: (search?: string, role?: string, status?: string, page?: number) =>
     ['admin', 'users', search ?? '', role ?? '', status ?? '', page ?? 1] as const,

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Box,
   Button,
@@ -19,6 +19,7 @@ import {
   TextField,
   Typography,
   Alert,
+  useTheme,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
@@ -27,29 +28,76 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ThemeModeContext } from "../contexts/ThemeContext";
+import { lightTheme, darkTheme } from "../assets/theme";
 import {
   createCategory,
   deleteCategory,
   listCategories,
   updateCategory,
 } from "../api/categories";
+import { queryKeys } from "../api/queryKeys";
 import type { Category } from "../types/content.types";
 import { extractErrorMessage } from "../utils/error";
 
 const PER_PAGE = 12;
 
 const Categories: React.FC = () => {
+  const { isDarkMode } = useContext(ThemeModeContext);
+  const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const navigate = useNavigate();
-
-  // ── list state ──────────────────────────────────────────────────────────────
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [total, setTotal] = useState(0);
-  const [pages, setPages] = useState(1);
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [listError, setListError] = useState("");
+
+  const {
+    data,
+    isLoading: loading,
+    error: listErrorRaw,
+  } = useQuery({
+    queryKey: queryKeys.categories(search, page),
+    queryFn: () =>
+      listCategories({ search: search || undefined, page, per_page: PER_PAGE }),
+  });
+
+  const categories = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const pages = data?.pages ?? 1;
+  const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, "Failed to load categories.") : "";
+
+  const saveMutation = useMutation({
+    mutationFn: async (payload: {
+      id?: number;
+      title: string;
+      description: string | null;
+    }) => {
+      if (payload.id) {
+        return updateCategory(payload.id, {
+          title: payload.title,
+          description: payload.description,
+        });
+      }
+      return createCategory({
+        title: payload.title,
+        description: payload.description,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      closeDialog();
+      setPage(1);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteCategory(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      setDeleteTarget(null);
+    },
+  });
 
   // ── create / edit dialog ────────────────────────────────────────────────────
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -57,31 +105,9 @@ const Categories: React.FC = () => {
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formError, setFormError] = useState("");
-  const [saving, setSaving] = useState(false);
 
   // ── delete confirmation dialog ───────────────────────────────────────────────
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
-  const [deleting, setDeleting] = useState(false);
-
-  // ── fetch ───────────────────────────────────────────────────────────────────
-  const fetchCategories = useCallback(async () => {
-    setLoading(true);
-    setListError("");
-    try {
-      const data = await listCategories({ search: search || undefined, page, per_page: PER_PAGE });
-      setCategories(data.items);
-      setTotal(data.total);
-      setPages(data.pages);
-    } catch (err) {
-      setListError(extractErrorMessage(err, "Failed to load categories."));
-    } finally {
-      setLoading(false);
-    }
-  }, [search, page]);
-
-  useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
 
   // ── search ──────────────────────────────────────────────────────────────────
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -118,45 +144,27 @@ const Categories: React.FC = () => {
       setFormError("Title is required.");
       return;
     }
-    setSaving(true);
     setFormError("");
-    try {
-      if (editingCategory) {
-        await updateCategory(editingCategory.id, {
-          title: trimmedTitle,
-          description: formDescription.trim() || null,
-        });
-      } else {
-        await createCategory({
-          title: trimmedTitle,
-          description: formDescription.trim() || null,
-        });
+    saveMutation.mutate(
+      {
+        id: editingCategory?.id,
+        title: trimmedTitle,
+        description: formDescription.trim() || null,
+      },
+      {
+        onError: (err) => {
+          setFormError(extractErrorMessage(err, "Failed to save category."));
+        },
       }
-      closeDialog();
-      setPage(1);
-      fetchCategories();
-    } catch (err) {
-      setFormError(extractErrorMessage(err, "Failed to save category."));
-    } finally {
-      setSaving(false);
-    }
+    );
   };
 
-  // ── delete ──────────────────────────────────────────────────────────────────
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      await deleteCategory(deleteTarget.id);
-      setDeleteTarget(null);
-      if (categories.length === 1 && page > 1) setPage((p) => p - 1);
-      else fetchCategories();
-    } catch (err) {
-      // stay in dialog on error — show snackbar or just close
-      setDeleteTarget(null);
-    } finally {
-      setDeleting(false);
-    }
+    deleteMutation.mutate(deleteTarget.id, {
+      onError: () => setDeleteTarget(null),
+    });
+    if (categories.length === 1 && page > 1) setPage((p) => p - 1);
   };
 
   return (
@@ -322,14 +330,21 @@ const Categories: React.FC = () => {
 
       {/* ── FAB ── */}
       <Fab
-        color="primary"
         aria-label="add category"
         onClick={openCreateDialog}
         sx={{
           position: "fixed",
           right: { xs: 16, sm: 24 },
           bottom: { xs: 16, sm: 24 },
-          boxShadow: "0 16px 32px rgba(0,0,0,0.15)",
+          backgroundColor: palette.primary.main,
+          color: palette.primary.contrastText,
+          boxShadow: isDarkMode
+            ? "0 16px 32px rgba(0,0,0,0.4)"
+            : "0 16px 32px rgba(0,0,0,0.15)",
+          "&:hover": {
+            backgroundColor: palette.primary.dark,
+            color: palette.primary.contrastText,
+          },
         }}
       >
         <AddIcon />
@@ -370,11 +385,11 @@ const Categories: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions className="px-3 pb-3 pt-2 gap-1">
-          <Button onClick={closeDialog} variant="text" disabled={saving}>
+          <Button onClick={closeDialog} variant="text" disabled={saveMutation.isPending}>
             Cancel
           </Button>
-          <Button onClick={handleSave} variant="contained" disabled={saving}>
-            {saving ? <CircularProgress size={18} /> : editingCategory ? "Update" : "Create"}
+          <Button onClick={handleSave} variant="contained" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? <CircularProgress size={18} /> : editingCategory ? "Update" : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -389,11 +404,11 @@ const Categories: React.FC = () => {
           </Typography>
         </DialogContent>
         <DialogActions className="px-3 pb-3 gap-1">
-          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleting}>
+          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleteMutation.isPending}>
             Cancel
           </Button>
-          <Button onClick={handleDelete} color="error" variant="contained" disabled={deleting}>
-            {deleting ? <CircularProgress size={18} /> : "Delete"}
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={deleteMutation.isPending}>
+            {deleteMutation.isPending ? <CircularProgress size={18} /> : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

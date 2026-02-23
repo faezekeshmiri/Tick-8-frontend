@@ -5,13 +5,19 @@ import {
   Typography,
   Button,
   Box,
+  IconButton,
   useTheme,
 } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
 import { Link } from "react-router-dom";
 import HeaderMenu from "./HeaderMenu";
 import { useAuth } from "../../contexts/AuthContext";
 
-const Header: React.FC = () => {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const theme = useTheme();
   const isRTL = theme.direction === "rtl";
   const { isAuthenticated, logout } = useAuth();
@@ -22,30 +28,39 @@ const Header: React.FC = () => {
   return (
     <AppBar
       position="static"
-      className="shadow-md"
       color="primary"
       enableColorOnDark
+      sx={{
+        boxShadow:
+          "0 8px 16px -4px rgba(0, 0, 0, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.06)",
+      }}
     >
       <Toolbar
-        className={`flex justify-between items-center ${
-          isRTL ? "flex-row-reverse" : "flex-row"
-        }`}
         sx={{
-          height: "72px",
+          minHeight: { xs: 56, sm: 64, md: 72 },
           display: "flex",
+          flexDirection: isRTL ? "row-reverse" : "row",
           justifyContent: "space-between",
           alignItems: "center",
-          padding: "0 16px",
+          px: 2,
         }}
       >
-        {/* Logo */}
-        <Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          {onMenuClick && (
+            <IconButton
+              color="inherit"
+              aria-label="Open menu"
+              onClick={onMenuClick}
+              sx={{ minWidth: 44, minHeight: 44 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
           <Typography variant="h5" component="div">
             LOGO
           </Typography>
         </Box>
 
-        {/* Buttons */}
         <Box className="flex gap-2">
           {isAuthenticated ? (
             <HeaderMenu onLogout={handleLogout} />

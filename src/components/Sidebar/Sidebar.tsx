@@ -1,5 +1,5 @@
 // Sidebar.tsx
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Drawer,
   IconButton,
@@ -19,6 +19,8 @@ import {
   SidebarAvatar,
 } from "../../types/Sidebar.types";
 import SidebarSubmenu from "./SidebarSubmenu";
+import { ThemeModeContext } from "../../contexts/ThemeContext";
+import { lightTheme, darkTheme } from "../../assets/theme";
 
 // Utility to generate a color from a string
 function stringToColor(str: string) {
@@ -33,20 +35,20 @@ function stringToColor(str: string) {
 type SidebarProps = {
   items: SidebarItem[];
   avatar?: SidebarAvatar;
+  variant?: "permanent" | "temporary";
+  open?: boolean;
+  onClose?: () => void;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ items, avatar }) => {
+const Sidebar: React.FC<SidebarProps> = ({ items, avatar, variant = "permanent", open, onClose }) => {
   const theme = useTheme();
+  const { isDarkMode } = useContext(ThemeModeContext);
+  const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [submenuItems, setSubmenuItems] = useState<SubmenuItem[]>([]);
   const [submenuOpen, setSubmenuOpen] = useState(false);
   const [submenuTitle, setSubmenuTitle] = useState("");
-  const drawerWidth = {
-    xs: 76, // extra small (mobile)
-    sm: 80, // small (tablets)
-    md: 72, // medium (desktops)
-  };
 
   const handleMouseEnter = (
     event: React.MouseEvent<HTMLElement>,
@@ -68,23 +70,47 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar }) => {
   };
   // Todo: fix closing submenu when moving out of the sidebar item but not the sidebar itself
   // Todo: Replace sx in-line styles with Tailwind classes or styled components or makeStyles for better maintainability
+  const drawerPaperShadow =
+    theme.direction === "ltr"
+      ? "8px 0 24px -4px rgba(0, 0, 0, 0.15), 4px 0 12px -2px rgba(0, 0, 0, 0.1)"
+      : "-8px 0 24px -4px rgba(0, 0, 0, 0.15), -4px 0 12px -2px rgba(0, 0, 0, 0.1)";
+
+  const drawerSx =
+    variant === "permanent"
+      ? {
+          flexShrink: 0,
+          "& .MuiDrawer-paper": {
+            height: "100%",
+            top: "auto",
+            bottom: "auto",
+            position: "relative",
+            boxSizing: "border-box",
+            borderRight: theme.direction === "ltr" ? `1px solid ${theme.palette.divider}` : "none",
+            borderLeft: theme.direction === "rtl" ? `1px solid ${theme.palette.divider}` : "none",
+            backgroundColor: palette.primary.main,
+            boxShadow: drawerPaperShadow,
+          },
+        }
+      : {
+          "& .MuiDrawer-paper": {
+            boxSizing: "border-box",
+            width: 280,
+            backgroundColor: palette.primary.main,
+            boxShadow: "8px 0 32px -4px rgba(0, 0, 0, 0.2), 4px 0 12px -2px rgba(0, 0, 0, 0.12)",
+          },
+        };
+
   return (
     <>
       <Drawer
-        variant="permanent"
-        color="primary"
+        variant={variant}
+        open={variant === "temporary" ? open : true}
+        onClose={onClose}
         anchor={theme.direction === "rtl" ? "right" : "left"}
-        sx={{
-          flexShrink: 0,
-          "& .MuiDrawer-paper": {
-            height: "100%", // Important: only take parent height
-            top: "auto", // Cancel fixed top positioning
-            bottom: "auto", // Cancel fixed bottom positioning
-            position: "relative", // Crucial: remove fixed behavior
-            boxSizing: "border-box",
-            borderRight: theme.direction === "ltr" ? "1px solid #ddd" : "none",
-            borderLeft: theme.direction === "rtl" ? "1px solid #ddd" : "none",
-            bgcolor: "primary.main",
+        sx={drawerSx}
+        slotProps={{
+          paper: {
+            sx: { backgroundColor: palette.primary.main },
           },
         }}
       >
@@ -109,6 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar }) => {
                 onClick={(e) => {
                   if (item.onClick) {
                     item.onClick();
+                    onClose?.();
                     return;
                   }
                   if (item.submenuItems && item.submenuItems.length > 0) {
@@ -164,22 +191,28 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar }) => {
               sx={{
                 width: { xs: 48, sm: 50, md: 52 },
                 height: { xs: 48, sm: 50, md: 52 },
-                bgcolor: avatar.imageUrl
-                  ? "primary.light"
+                minWidth: 44,
+                minHeight: 44,
+                backgroundColor: avatar.imageUrl
+                  ? palette.primary.light
                   : stringToColor(avatar.name),
-                color: avatar.imageUrl ? "inherit" : "#fff",
+                color: avatar.imageUrl ? "inherit" : palette.primary.contrastText,
                 boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
                 transition: "all 0.3s ease-in-out",
                 "&:hover": {
                   transform: "scale(1.15)",
                   boxShadow: "0 6px 12px rgba(0,0,0,0.25)",
-                  bgcolor: avatar.imageUrl
-                    ? "primary.main"
+                  backgroundColor: avatar.imageUrl
+                    ? palette.primary.main
                     : stringToColor(avatar.name),
+                  color: avatar.imageUrl ? "inherit" : palette.primary.contrastText,
                 },
                 fontSize: 32,
               }}
-              onClick={() => navigate("/profile")}
+              onClick={() => {
+                navigate("/profile");
+                onClose?.();
+              }}
             >
               {!avatar.imageUrl ? <AccountCircleIcon fontSize="large" /> : null}
             </Avatar>

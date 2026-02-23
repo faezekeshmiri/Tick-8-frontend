@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef } from "react";
 import {
   Box,
   Button,
@@ -10,12 +10,14 @@ import {
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getTodaysQueueWithCards,
   getUpcomingReviews,
   getNextReviewDate,
   setProgressTicks,
 } from "../api/study";
+import { queryKeys } from "../api/queryKeys";
 import type { UpcomingDay } from "../types/study.types";
 import type { MarkType } from "../components/Flashcard/Flashcard";
 import { extractErrorMessage } from "../utils/error";
@@ -29,54 +31,49 @@ const marksToTickMarks = (front: MarkType[], back: MarkType[]): ("remembered" | 
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [items, setItems] = useState<Awaited<ReturnType<typeof getTodaysQueueWithCards>>>([]);
-  const [upcoming, setUpcoming] = useState<UpcomingDay[]>([]);
-  const [nextDate, setNextDate] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
   const saveTicksTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const fetch = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const [cardsRes, upcomingRes, nextRes] = await Promise.all([
-        getTodaysQueueWithCards(),
-        getUpcomingReviews(5),
-        getNextReviewDate(),
-      ]);
-      setItems(Array.isArray(cardsRes) ? cardsRes : []);
-      setUpcoming(upcomingRes);
-      setNextDate(nextRes.date ?? null);
-    } catch (err) {
-      setError(extractErrorMessage(err, "Failed to load study queue."));
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { data: items = [], isLoading: loading, error: listError } = useQuery({
+    queryKey: queryKeys.studyQueueWithCards(),
+    queryFn: async () => {
+      const res = await getTodaysQueueWithCards();
+      return Array.isArray(res) ? res : [];
+    },
+  });
 
-  useEffect(() => {
-    fetch();
-  }, [fetch]);
+  const { data: upcoming = [] } = useQuery({
+    queryKey: queryKeys.studyUpcoming(5),
+    queryFn: () => getUpcomingReviews(5),
+  });
+
+  const { data: nextReviewData } = useQuery({
+    queryKey: queryKeys.studyNextReviewDate(),
+    queryFn: getNextReviewDate,
+  });
+  const nextDate = nextReviewData?.date ?? null;
+
+  const ticksMutation = useMutation({
+    mutationFn: ({ progressId, marks }: { progressId: number; marks: ("remembered" | "forgot")[] }) =>
+      setProgressTicks(progressId, marks),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.studyQueueWithCards() });
+    },
+  });
 
   const handleMarksChange = useCallback(
     (progressId: number, frontMarks: MarkType[], backMarks: MarkType[]) => {
       if (saveTicksTimeoutRef.current) clearTimeout(saveTicksTimeoutRef.current);
-      saveTicksTimeoutRef.current = setTimeout(async () => {
+      saveTicksTimeoutRef.current = setTimeout(() => {
         saveTicksTimeoutRef.current = null;
         const marks = marksToTickMarks(frontMarks, backMarks);
-        try {
-          await setProgressTicks(progressId, marks);
-          const cardsRes = await getTodaysQueueWithCards();
-          setItems(Array.isArray(cardsRes) ? cardsRes : []);
-        } catch {
-          // optional: toast
-        }
+        ticksMutation.mutate({ progressId, marks });
       }, 400);
     },
-    []
+    [ticksMutation]
   );
+
+  const error = listError ? extractErrorMessage(listError, "Failed to load study queue.") : "";
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", px: 2, py: 3 }}>
@@ -85,7 +82,7 @@ const Home: React.FC = () => {
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}

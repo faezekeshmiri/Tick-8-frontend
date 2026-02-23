@@ -128,7 +128,15 @@ const StudySession: React.FC = () => {
     );
   }
 
-  // Queue fetch failed — show the error and a way back home
+  if (loading) {
+    return (
+      <Box sx={{ maxWidth: 560, mx: "auto", p: 2 }}>
+        <Skeleton height={200} sx={{ mb: 2 }} />
+        <Skeleton height={48} width="100%" />
+      </Box>
+    );
+  }
+
   if (!queueData) {
     return (
       <Box sx={{ maxWidth: 560, mx: "auto", p: 2 }}>
@@ -200,7 +208,7 @@ const StudySession: React.FC = () => {
       </Typography>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError("")}>
+        <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
@@ -250,7 +258,7 @@ const StudySession: React.FC = () => {
                 color="error"
                 startIcon={<CloseIcon />}
                 onClick={() => handleResponse("forgot")}
-                disabled={sending}
+                disabled={recordTickMutation.isPending}
                 sx={{ flex: 1 }}
               >
                 Forgot
@@ -260,7 +268,7 @@ const StudySession: React.FC = () => {
                 color="success"
                 startIcon={<CheckCircleIcon />}
                 onClick={() => handleResponse("remembered")}
-                disabled={sending}
+                disabled={recordTickMutation.isPending}
                 sx={{ flex: 1 }}
               >
                 Remembered

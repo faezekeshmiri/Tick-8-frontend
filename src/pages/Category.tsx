@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   Alert,
   Box,
@@ -18,12 +18,16 @@ import {
   Pagination,
   TextField,
   Typography,
+  useTheme,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LayersIcon from "@mui/icons-material/Layers";
 import { useNavigate, useParams } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { ThemeModeContext } from "../contexts/ThemeContext";
+import { lightTheme, darkTheme } from "../assets/theme";
 import {
   createSubCategory,
   deleteSubCategory,
@@ -31,6 +35,7 @@ import {
   updateSubCategory,
 } from "../api/subcategories";
 import { getCategory } from "../api/categories";
+import { queryKeys } from "../api/queryKeys";
 import type { Category, SubCategory } from "../types/content.types";
 import SubCategoryCard from "../components/SubCategoryCard";
 import { extractErrorMessage } from "../utils/error";
@@ -38,63 +43,68 @@ import { extractErrorMessage } from "../utils/error";
 const PER_PAGE = 12;
 
 const CategoryPage: React.FC = () => {
+  const { isDarkMode } = useContext(ThemeModeContext);
+  const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const navigate = useNavigate();
   const { categoryId } = useParams<{ categoryId: string }>();
   const catId = Number(categoryId);
 
-  // ── category ────────────────────────────────────────────────────────────────
-  const [category, setCategory] = useState<Category | null>(null);
-
-  // ── subcategories ───────────────────────────────────────────────────────────
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
-  const [total, setTotal] = useState(0);
-  const [pages, setPages] = useState(1);
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [listError, setListError] = useState("");
-
-  // ── create / edit dialog ────────────────────────────────────────────────────
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingSub, setEditingSub] = useState<SubCategory | null>(null);
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
   const [formError, setFormError] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  // ── delete confirmation ──────────────────────────────────────────────────────
   const [deleteTarget, setDeleteTarget] = useState<SubCategory | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
-  // ── load category info ───────────────────────────────────────────────────────
-  useEffect(() => {
-    getCategory(catId).then(setCategory).catch(() => {});
-  }, [catId]);
-
-  // ── fetch subcategories ──────────────────────────────────────────────────────
-  const fetchSubs = useCallback(async () => {
-    setLoading(true);
-    setListError("");
-    try {
-      const data = await listSubCategories(catId, {
+  const { data: category } = useQuery({
+    queryKey: queryKeys.category(catId),
+    queryFn: () => getCategory(catId),
+    enabled: !!catId && !Number.isNaN(catId),
+  });
+  const {
+    data: subData,
+    isLoading: loading,
+    error: listErrorRaw,
+  } = useQuery({
+    queryKey: queryKeys.subcategories(catId, search, page),
+    queryFn: () =>
+      listSubCategories(catId, {
         search: search || undefined,
         page,
         per_page: PER_PAGE,
-      });
-      setSubCategories(data.items);
-      setTotal(data.total);
-      setPages(data.pages);
-    } catch (err) {
-      setListError(extractErrorMessage(err, "Failed to load subcategories."));
-    } finally {
-      setLoading(false);
-    }
-  }, [catId, search, page]);
-
-  useEffect(() => {
-    fetchSubs();
-  }, [fetchSubs]);
+      }),
+    enabled: !!catId && !Number.isNaN(catId),
+  });
+  const subCategories = subData?.items ?? [];
+  const total = subData?.total ?? 0;
+  const pages = subData?.pages ?? 1;
+  const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, "Failed to load subcategories.") : "";
+  const saveMutation = useMutation({
+    mutationFn: async (payload: { id?: number; title: string; description: string | null }) => {
+      if (payload.id) return updateSubCategory(payload.id, { title: payload.title, description: payload.description });
+      return createSubCategory(catId, { title: payload.title, description: payload.description });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.subcategories(catId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.category(catId) });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      closeDialog();
+      setPage(1);
+    },
+  });
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteSubCategory(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.subcategories(catId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.category(catId) });
+      queryClient.invalidateQueries({ queryKey: ['categories'] });
+      setDeleteTarget(null);
+    },
+  });
 
   // ── search ──────────────────────────────────────────────────────────────────
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -128,44 +138,25 @@ const CategoryPage: React.FC = () => {
   const handleSave = async () => {
     const trimmedTitle = formTitle.trim();
     if (!trimmedTitle) { setFormError("Title is required."); return; }
-    setSaving(true);
     setFormError("");
-    try {
-      if (editingSub) {
-        await updateSubCategory(editingSub.id, {
-          title: trimmedTitle,
-          description: formDescription.trim() || null,
-        });
-      } else {
-        await createSubCategory(catId, {
-          title: trimmedTitle,
-          description: formDescription.trim() || null,
-        });
+    saveMutation.mutate(
+      {
+        id: editingSub?.id,
+        title: trimmedTitle,
+        description: formDescription.trim() || null,
+      },
+      {
+        onError: (err) => {
+          setFormError(extractErrorMessage(err, "Failed to save subcategory."));
+        },
       }
-      closeDialog();
-      setPage(1);
-      fetchSubs();
-    } catch (err) {
-      setFormError(extractErrorMessage(err, "Failed to save subcategory."));
-    } finally {
-      setSaving(false);
-    }
+    );
   };
 
-  // ── delete ──────────────────────────────────────────────────────────────────
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      await deleteSubCategory(deleteTarget.id);
-      setDeleteTarget(null);
-      if (subCategories.length === 1 && page > 1) setPage((p) => p - 1);
-      else fetchSubs();
-    } catch {
-      setDeleteTarget(null);
-    } finally {
-      setDeleting(false);
-    }
+    deleteMutation.mutate(deleteTarget.id, { onError: () => setDeleteTarget(null) });
+    if (subCategories.length === 1 && page > 1) setPage((p) => p - 1);
   };
 
   const categoryTitle = category?.title ?? "Category";
@@ -264,10 +255,22 @@ const CategoryPage: React.FC = () => {
 
       {/* ── FAB ── */}
       <Fab
-        color="primary"
         aria-label="add subcategory"
         onClick={openCreateDialog}
-        sx={{ position: "fixed", right: { xs: 16, sm: 24 }, bottom: { xs: 16, sm: 24 }, boxShadow: "0 16px 32px rgba(0,0,0,0.15)" }}
+        sx={{
+          position: "fixed",
+          right: { xs: 16, sm: 24 },
+          bottom: { xs: 16, sm: 24 },
+          backgroundColor: palette.primary.main,
+          color: palette.primary.contrastText,
+          boxShadow: isDarkMode
+            ? "0 16px 32px rgba(0,0,0,0.4)"
+            : "0 16px 32px rgba(0,0,0,0.15)",
+          "&:hover": {
+            backgroundColor: palette.primary.dark,
+            color: palette.primary.contrastText,
+          },
+        }}
       >
         <AddIcon />
       </Fab>
@@ -298,9 +301,9 @@ const CategoryPage: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions className="px-3 pb-3 pt-2 gap-1">
-          <Button onClick={closeDialog} variant="text" disabled={saving}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained" disabled={saving}>
-            {saving ? <CircularProgress size={18} /> : editingSub ? "Update" : "Create"}
+          <Button onClick={closeDialog} variant="text" disabled={saveMutation.isPending}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained" disabled={saveMutation.isPending}>
+            {saveMutation.isPending ? <CircularProgress size={18} /> : editingSub ? "Update" : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -314,9 +317,9 @@ const CategoryPage: React.FC = () => {
           </Typography>
         </DialogContent>
         <DialogActions className="px-3 pb-3 gap-1">
-          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleting}>Cancel</Button>
-          <Button onClick={handleDelete} color="error" variant="contained" disabled={deleting}>
-            {deleting ? <CircularProgress size={18} /> : "Delete"}
+          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleteMutation.isPending}>Cancel</Button>
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={deleteMutation.isPending}>
+            {deleteMutation.isPending ? <CircularProgress size={18} /> : "Delete"}
           </Button>
         </DialogActions>
       </Dialog>

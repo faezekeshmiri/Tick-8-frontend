@@ -58,7 +58,7 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 
 // ── Component ─────────────────────────────────────────────────────────────────
 const Profile: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, refreshUser } = useAuth();
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
     null
   );
@@ -82,6 +82,16 @@ const Profile: React.FC = () => {
 
   const emailForm = useForm<EmailForm>({ resolver: zodResolver(emailSchema) });
   const passwordForm = useForm<PasswordForm>({ resolver: zodResolver(passwordSchema) });
+
+  React.useEffect(() => {
+    if (user) {
+      profileForm.reset({
+        display_name: user.display_name ?? '',
+        avatar_url: user.avatar_url ?? '',
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync when user from server changes
+  }, [user]);
 
   React.useEffect(() => {
     studyApi
@@ -142,6 +152,7 @@ const Profile: React.FC = () => {
         current_password: data.current_password,
       });
       emailForm.reset();
+      await refreshUser();
       setToast({ message: msg, severity: 'success' });
     } catch (err) {
       setToast({ message: extractErrorMessage(err, 'Failed to update email.'), severity: 'error' });
