@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import {
   Alert,
   Box,
@@ -26,7 +26,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import LayersIcon from "@mui/icons-material/Layers";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ThemeModeContext } from "../contexts/ThemeContext";
+import { useThemeMode } from "../contexts/ThemeContext";
 import { lightTheme, darkTheme } from "../assets/theme";
 import {
   createSubCategory,
@@ -43,7 +43,7 @@ import { extractErrorMessage } from "../utils/error";
 const PER_PAGE = 12;
 
 const CategoryPage: React.FC = () => {
-  const { isDarkMode } = useContext(ThemeModeContext);
+  const { isDarkMode } = useThemeMode();
   const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const navigate = useNavigate();
   const { categoryId } = useParams<{ categoryId: string }>();
@@ -281,7 +281,7 @@ const CategoryPage: React.FC = () => {
           {editingSub ? "Edit subcategory" : "New subcategory"}
           <IconButton aria-label="close" onClick={closeDialog} size="small"><CloseIcon /></IconButton>
         </DialogTitle>
-        <DialogContent className="pb-0 px-3">
+        <DialogContent className="pb-0 pt-3 px-3" sx={{ overflow: "visible" }}>
           <TextField
             autoFocus fullWidth label="Title"
             value={formTitle}

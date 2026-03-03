@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -29,7 +29,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import FolderOpenIcon from "@mui/icons-material/FolderOpen";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ThemeModeContext } from "../contexts/ThemeContext";
+import { useThemeMode } from "../contexts/ThemeContext";
 import { lightTheme, darkTheme } from "../assets/theme";
 import {
   createCategory,
@@ -44,7 +44,7 @@ import { extractErrorMessage } from "../utils/error";
 const PER_PAGE = 12;
 
 const Categories: React.FC = () => {
-  const { isDarkMode } = useContext(ThemeModeContext);
+  const { isDarkMode } = useThemeMode();
   const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -358,7 +358,7 @@ const Categories: React.FC = () => {
             <CloseIcon />
           </IconButton>
         </DialogTitle>
-        <DialogContent className="pb-0 px-3">
+        <DialogContent className="px-3 pt-3 pb-0" sx={{ overflow: "visible" }}>
           <TextField
             autoFocus
             fullWidth

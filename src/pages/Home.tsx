@@ -9,6 +9,7 @@ import {
   Alert,
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -17,8 +18,8 @@ import {
   getNextReviewDate,
   setProgressTicks,
 } from "../api/study";
+import { listCategories } from "../api/categories";
 import { queryKeys } from "../api/queryKeys";
-import type { UpcomingDay } from "../types/study.types";
 import type { MarkType } from "../components/Flashcard/Flashcard";
 import { extractErrorMessage } from "../utils/error";
 import Flashcard from "../components/Flashcard";
@@ -41,6 +42,12 @@ const Home: React.FC = () => {
       return Array.isArray(res) ? res : [];
     },
   });
+
+  const { data: categoriesData } = useQuery({
+    queryKey: queryKeys.categories(undefined, 1),
+    queryFn: () => listCategories({ page: 1, per_page: 1 }),
+  });
+  const hasAnyCategories = (categoriesData?.total ?? 0) > 0;
 
   const { data: upcoming = [] } = useQuery({
     queryKey: queryKeys.studyUpcoming(5),
@@ -101,22 +108,48 @@ const Home: React.FC = () => {
       ) : (
         <>
           {items.length === 0 ? (
-            <Card variant="outlined" sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography color={error ? "error" : "text.secondary"} sx={{ mb: 2 }}>
-                  {error
-                    ? "Could not load your study queue. Check that the backend is running and migrations are applied."
-                    : (
-                      <>
-                        You&apos;re all caught up!
-                        {nextDate && (
-                          <> Your next review is on {new Date(nextDate).toLocaleDateString()}.</>
+            <>
+              {!hasAnyCategories ? (
+                <Card variant="outlined" sx={{ mb: 3 }}>
+                  <CardContent>
+                    <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5, mb: 2 }}>
+                      <AddCircleOutlineIcon color="action" sx={{ mt: 0.25 }} />
+                      <Box>
+                        <Typography variant="subtitle1" fontWeight={600} color="text.primary" gutterBottom>
+                          You haven&apos;t added any flashcards yet
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          Get started by adding categories, then subcategories, and finally your flashcards. Your reviews will show up here once you have cards to study.
+                        </Typography>
+                        <Button
+                          variant="contained"
+                          onClick={() => navigate("/categories")}
+                        >
+                          Go to Categories
+                        </Button>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card variant="outlined" sx={{ mb: 3 }}>
+                  <CardContent>
+                    <Typography color={error ? "error" : "text.secondary"} sx={{ mb: 2 }}>
+                      {error
+                        ? "Could not load your study queue. Check that the backend is running and migrations are applied."
+                        : (
+                          <>
+                            You&apos;re all caught up!
+                            {nextDate && (
+                              <> Your next review is on {new Date(nextDate).toLocaleDateString()}.</>
+                            )}
+                          </>
                         )}
-                      </>
-                    )}
-                </Typography>
-              </CardContent>
-            </Card>
+                    </Typography>
+                  </CardContent>
+                </Card>
+              )}
+            </>
           ) : (
             <Box
               sx={{
