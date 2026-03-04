@@ -10,6 +10,7 @@ import Sidebar from "../components/Sidebar/Sidebar";
 import { SidebarAvatar, SidebarItem } from "../types/Sidebar.types";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { resolveImageUrl } from "../api/upload";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -25,7 +26,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, direction = "ltr" }) 
 
   const avatarData: SidebarAvatar = {
     name: user?.display_name ?? "User",
-    imageUrl: user?.avatar_url ?? "",
+    imageUrl: user?.avatar_url ? resolveImageUrl(user.avatar_url) : "",
     email: user?.email ?? "",
   };
 

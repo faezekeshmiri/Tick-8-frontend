@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Alert,
-  Avatar,
   Box,
   Button,
   Card,
@@ -20,11 +19,11 @@ import { z } from 'zod';
 import { useAuth } from '../contexts/AuthContext';
 import * as authApi from '../api/auth';
 import { extractErrorMessage } from '../utils/error';
+import AvatarUpload from '../components/AvatarUpload';
 
 // ── Profile form ──────────────────────────────────────────────────────────────
 const profileSchema = z.object({
   display_name: z.string().min(1, 'Display name is required').max(100),
-  avatar_url: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 type ProfileForm = z.infer<typeof profileSchema>;
 
@@ -67,7 +66,6 @@ const Profile: React.FC = () => {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       display_name: user?.display_name ?? '',
-      avatar_url: user?.avatar_url ?? '',
     },
   });
 
@@ -78,7 +76,6 @@ const Profile: React.FC = () => {
     if (user) {
       profileForm.reset({
         display_name: user.display_name ?? '',
-        avatar_url: user.avatar_url ?? '',
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only sync when user from server changes
@@ -90,13 +87,22 @@ const Profile: React.FC = () => {
     try {
       const updated = await authApi.updateProfile({
         display_name: data.display_name,
-        avatar_url: data.avatar_url || undefined,
       });
       updateUser(updated);
       setEditingProfile(false);
       setToast({ message: 'Profile updated successfully.', severity: 'success' });
     } catch (err) {
       setToast({ message: extractErrorMessage(err, 'Failed to update profile.'), severity: 'error' });
+    }
+  };
+
+  const onAvatarUploaded = async (url: string) => {
+    try {
+      const updated = await authApi.updateProfile({ avatar_url: url });
+      updateUser(updated);
+      setToast({ message: 'Profile picture updated.', severity: 'success' });
+    } catch (err) {
+      setToast({ message: extractErrorMessage(err, 'Failed to save profile picture.'), severity: 'error' });
     }
   };
 
@@ -146,66 +152,73 @@ const Profile: React.FC = () => {
       {/* ── Profile Card ── */}
       <Card sx={{ mb: 3, borderRadius: 3 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <Avatar
-              src={user.avatar_url ?? undefined}
-              sx={{ width: 64, height: 64, fontSize: 24, bgcolor: 'primary.main' }}
-            >
-              {initials}
-            </Avatar>
-            <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'center', sm: 'flex-start' },
+              gap: 3,
+              mb: 2,
+            }}
+          >
+            <AvatarUpload
+              currentUrl={user.avatar_url}
+              initials={initials}
+              onUploaded={onAvatarUploaded}
+              onError={(msg) => setToast({ message: msg, severity: 'error' })}
+            />
+
+            <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  justifyContent: { xs: 'center', sm: 'flex-start' },
+                }}
+              >
                 <Typography variant="h6">{user.display_name}</Typography>
                 <Chip
                   label={user.role === 'admin' ? 'Admin' : 'User'}
                   size="small"
                   color={user.role === 'admin' ? 'secondary' : 'default'}
                 />
+                {!editingProfile && (
+                  <IconButton onClick={() => setEditingProfile(true)} title="Edit profile" size="small">
+                    <Edit fontSize="small" />
+                  </IconButton>
+                )}
               </Box>
               <Typography variant="body2" color="text.secondary">
                 {user.email}
               </Typography>
-            </Box>
-            {!editingProfile && (
-              <IconButton onClick={() => setEditingProfile(true)} title="Edit profile">
-                <Edit />
-              </IconButton>
-            )}
-          </Box>
 
-          {editingProfile && (
-            <form onSubmit={profileForm.handleSubmit(onSaveProfile)} noValidate>
-              <TextField
-                fullWidth
-                label="Display Name"
-                {...profileForm.register('display_name')}
-                error={!!profileForm.formState.errors.display_name}
-                helperText={profileForm.formState.errors.display_name?.message}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                fullWidth
-                label="Avatar URL"
-                placeholder="https://example.com/avatar.jpg"
-                {...profileForm.register('avatar_url')}
-                error={!!profileForm.formState.errors.avatar_url}
-                helperText={profileForm.formState.errors.avatar_url?.message}
-                sx={{ mb: 2 }}
-              />
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={profileForm.formState.isSubmitting}
-                >
-                  Save
-                </Button>
-                <Button variant="outlined" onClick={() => setEditingProfile(false)}>
-                  Cancel
-                </Button>
-              </Box>
-            </form>
-          )}
+              {editingProfile && (
+                <form onSubmit={profileForm.handleSubmit(onSaveProfile)} noValidate>
+                  <TextField
+                    fullWidth
+                    label="Display Name"
+                    {...profileForm.register('display_name')}
+                    error={!!profileForm.formState.errors.display_name}
+                    helperText={profileForm.formState.errors.display_name?.message}
+                    sx={{ mt: 2, mb: 2 }}
+                  />
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      type="submit"
+                      variant="contained"
+                      disabled={profileForm.formState.isSubmitting}
+                    >
+                      Save
+                    </Button>
+                    <Button variant="outlined" onClick={() => setEditingProfile(false)}>
+                      Cancel
+                    </Button>
+                  </Box>
+                </form>
+              )}
+            </Box>
+          </Box>
         </CardContent>
       </Card>
 
