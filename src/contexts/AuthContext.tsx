@@ -7,6 +7,7 @@ import React, {
   useState,
   ReactNode,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import * as authApi from '../api/auth';
 import { setAccessToken } from '../api/client';
 import { AuthUser, LoginPayload, RegisterPayload, UpdateProfilePayload } from '../types/auth.types';
@@ -28,6 +29,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const initialized = useRef(false);
+  const queryClient = useQueryClient();
 
   // Attempt silent refresh on first mount to restore session from cookie
   useEffect(() => {
@@ -49,10 +51,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const handler = () => {
       setUser(null);
       setAccessToken(null);
+      queryClient.clear();
     };
     window.addEventListener('auth:logout', handler);
     return () => window.removeEventListener('auth:logout', handler);
-  }, []);
+  }, [queryClient]);
 
   const login = useCallback(async (payload: LoginPayload) => {
     const { user: u } = await authApi.login(payload);
@@ -67,7 +70,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const logout = useCallback(async () => {
     await authApi.logout();
     setUser(null);
-  }, []);
+    queryClient.clear();
+  }, [queryClient]);
 
   const updateUser = useCallback((u: AuthUser) => {
     setUser(u);

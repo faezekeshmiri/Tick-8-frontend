@@ -33,7 +33,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, direction = "ltr" }) 
     { icon: <HomeIcon />, title: "Home", onClick: () => navigate("/") },
     { icon: <CategoryIcon />, title: "Categories", onClick: () => navigate("/categories") },
     { icon: <DeleteOutlineIcon />, title: "Trash", onClick: () => navigate("/trash") },
-    { icon: <SettingsIcon />, title: "Settings", onClick: () => navigate("/profile") },
+    { icon: <SettingsIcon />, title: "Settings", onClick: () => navigate("/settings") },
     ...(user?.role === "admin"
       ? [{ icon: <AdminPanelSettingsIcon />, title: "Admin", onClick: () => navigate("/admin") } as SidebarItem]
       : []),
