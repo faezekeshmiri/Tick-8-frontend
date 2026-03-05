@@ -9,20 +9,27 @@ import Header from "../components/Header/Header";
 import Sidebar from "../components/Sidebar/Sidebar";
 import { SidebarAvatar, SidebarItem } from "../types/Sidebar.types";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import { resolveImageUrl } from "../api/upload";
 
 interface MainLayoutProps {
   children: ReactNode;
-  direction?: "ltr" | "rtl";
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children, direction = "ltr" }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const { user } = useAuth();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+
+  const dir = theme.direction as "ltr" | "rtl";
+
+  useEffect(() => {
+    document.documentElement.dir = dir;
+  }, [dir]);
 
   const avatarData: SidebarAvatar = {
     name: user?.display_name ?? "User",
@@ -31,12 +38,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, direction = "ltr" }) 
   };
 
   const baseItems: SidebarItem[] = [
-    { icon: <HomeIcon />, title: "Home", onClick: () => navigate("/") },
-    { icon: <CategoryIcon />, title: "Categories", onClick: () => navigate("/categories") },
-    { icon: <DeleteOutlineIcon />, title: "Trash", onClick: () => navigate("/trash") },
-    { icon: <SettingsIcon />, title: "Settings", onClick: () => navigate("/settings") },
+    { icon: <HomeIcon />, title: t("nav.home"), onClick: () => navigate("/") },
+    { icon: <CategoryIcon />, title: t("nav.categories"), onClick: () => navigate("/categories") },
+    { icon: <DeleteOutlineIcon />, title: t("nav.trash"), onClick: () => navigate("/trash") },
+    { icon: <SettingsIcon />, title: t("nav.settings"), onClick: () => navigate("/settings") },
     ...(user?.role === "admin"
-      ? [{ icon: <AdminPanelSettingsIcon />, title: "Admin", onClick: () => navigate("/admin") } as SidebarItem]
+      ? [{ icon: <AdminPanelSettingsIcon />, title: t("nav.admin"), onClick: () => navigate("/admin") } as SidebarItem]
       : []),
   ];
   const items = isMobile
@@ -48,12 +55,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, direction = "ltr" }) 
         },
       }))
     : baseItems;
-
-  const [dir, setDir] = useState<"ltr" | "rtl">(direction);
-
-  useEffect(() => {
-    document.documentElement.dir = dir;
-  }, [dir]);
 
   return (
     <Box sx={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>

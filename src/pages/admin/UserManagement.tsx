@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Avatar,
@@ -40,6 +41,7 @@ type RoleFilter = 'all' | 'user' | 'admin';
 type StatusFilter = 'all' | 'active' | 'suspended';
 
 const UserManagement: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<AdminUserView[]>([]);
@@ -71,7 +73,7 @@ const UserManagement: React.FC = () => {
       setUsers(res.users);
       setTotal(res.total);
     } catch (err) {
-      setToast({ message: extractErrorMessage(err, 'Failed to load users.'), severity: 'error' });
+      setToast({ message: extractErrorMessage(err, t('admin.loadUsersFailed')), severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -115,9 +117,9 @@ const UserManagement: React.FC = () => {
       else updated = await adminApi.removeAdmin(userId);
 
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
-      setToast({ message: 'Action completed successfully.', severity: 'success' });
+      setToast({ message: t('admin.actionSuccess'), severity: 'success' });
     } catch (err) {
-      setToast({ message: extractErrorMessage(err, 'Action failed.'), severity: 'error' });
+      setToast({ message: extractErrorMessage(err, t('admin.actionFailed')), severity: 'error' });
     }
   };
 
@@ -126,7 +128,7 @@ const UserManagement: React.FC = () => {
   return (
     <Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        {total} user{total !== 1 ? 's' : ''} matching filters
+        {t('admin.matchingFilters', { count: total })}
       </Typography>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, alignItems: 'center' }}>
@@ -134,7 +136,7 @@ const UserManagement: React.FC = () => {
           <TextField
             fullWidth
             size="small"
-            placeholder="Search by name or email…"
+            placeholder={t('admin.searchPlaceholder')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             InputProps={{
@@ -147,27 +149,27 @@ const UserManagement: React.FC = () => {
           />
         </Box>
         <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Role</InputLabel>
+          <InputLabel>{t('admin.role')}</InputLabel>
           <Select
             value={roleFilter}
-            label="Role"
+            label={t('admin.role')}
             onChange={handleRoleChange}
           >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="user">User</MenuItem>
-            <MenuItem value="admin">Admin</MenuItem>
+            <MenuItem value="all">{t('admin.all')}</MenuItem>
+            <MenuItem value="user">{t('admin.userRole')}</MenuItem>
+            <MenuItem value="admin">{t('admin.adminRole')}</MenuItem>
           </Select>
         </FormControl>
         <FormControl size="small" sx={{ minWidth: 130 }}>
-          <InputLabel>Status</InputLabel>
+          <InputLabel>{t('admin.status')}</InputLabel>
           <Select
             value={statusFilter}
-            label="Status"
+            label={t('admin.status')}
             onChange={handleStatusChange}
           >
-            <MenuItem value="all">All</MenuItem>
-            <MenuItem value="active">Active</MenuItem>
-            <MenuItem value="suspended">Suspended</MenuItem>
+            <MenuItem value="all">{t('admin.all')}</MenuItem>
+            <MenuItem value="active">{t('admin.activeStatus')}</MenuItem>
+            <MenuItem value="suspended">{t('admin.suspendedStatus')}</MenuItem>
           </Select>
         </FormControl>
       </Box>
@@ -182,13 +184,13 @@ const UserManagement: React.FC = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>User</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Verified</TableCell>
-                  <TableCell>Joined</TableCell>
-                  <TableCell align="right">Actions</TableCell>
+                  <TableCell>{t('admin.name')}</TableCell>
+                  <TableCell>{t('admin.email')}</TableCell>
+                  <TableCell>{t('admin.role')}</TableCell>
+                  <TableCell>{t('admin.status')}</TableCell>
+                  <TableCell>{t('admin.verified')}</TableCell>
+                  <TableCell>{t('admin.joined')}</TableCell>
+                  <TableCell align="right">{t('admin.actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -217,14 +219,14 @@ const UserManagement: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={u.role === 'admin' ? 'Admin' : 'User'}
+                        label={u.role === 'admin' ? t('admin.adminRole') : t('admin.userRole')}
                         size="small"
                         color={u.role === 'admin' ? 'secondary' : 'default'}
                       />
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={u.is_active ? 'Active' : 'Suspended'}
+                        label={u.is_active ? t('admin.activeStatus') : t('admin.suspendedStatus')}
                         size="small"
                         color={u.is_active ? 'success' : 'error'}
                         variant="outlined"
@@ -232,7 +234,7 @@ const UserManagement: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={u.is_email_verified ? 'Verified' : 'Unverified'}
+                        label={u.is_email_verified ? t('admin.verified') : t('admin.unverified')}
                         size="small"
                         color={u.is_email_verified ? 'success' : 'warning'}
                         variant="outlined"
@@ -251,7 +253,7 @@ const UserManagement: React.FC = () => {
                           startIcon={<VisibilityIcon />}
                           onClick={() => navigate(`/admin/users/${u.id}`)}
                         >
-                          View details
+                          {t('admin.viewDetails')}
                         </Button>
                         {u.role !== 'admin' ? (
                           <>
@@ -262,7 +264,7 @@ const UserManagement: React.FC = () => {
                                 variant="outlined"
                                 onClick={() => openConfirm(u.id, 'suspend', u.display_name)}
                               >
-                                Suspend
+                                {t('admin.suspend')}
                               </Button>
                             ) : (
                               <Button
@@ -271,7 +273,7 @@ const UserManagement: React.FC = () => {
                                 variant="outlined"
                                 onClick={() => openConfirm(u.id, 'reactivate', u.display_name)}
                               >
-                                Reactivate
+                                {t('admin.reactivate')}
                               </Button>
                             )}
                             <Button
@@ -279,7 +281,7 @@ const UserManagement: React.FC = () => {
                               variant="outlined"
                               onClick={() => openConfirm(u.id, 'make-admin', u.display_name)}
                             >
-                              Make Admin
+                              {t('admin.makeAdmin')}
                             </Button>
                           </>
                         ) : (
@@ -290,7 +292,7 @@ const UserManagement: React.FC = () => {
                               variant="outlined"
                               onClick={() => openConfirm(u.id, 'remove-admin', u.display_name)}
                             >
-                              Remove Admin
+                              {t('admin.removeAdmin')}
                             </Button>
                           )
                         )}
@@ -317,26 +319,26 @@ const UserManagement: React.FC = () => {
 
       {/* Confirm dialog */}
       <Dialog open={!!confirmDialog?.open} onClose={() => setConfirmDialog(null)}>
-        <DialogTitle>Confirm Action</DialogTitle>
+        <DialogTitle>{t('admin.confirmAction')}</DialogTitle>
         <DialogContent>
           {confirmDialog?.action === 'suspend' &&
-            `Suspend ${confirmDialog.name}? They will not be able to log in until reactivated.`}
+            t('admin.suspendConfirm', { name: confirmDialog.name })}
           {confirmDialog?.action === 'reactivate' &&
-            `Reactivate ${confirmDialog.name}? They will regain full access.`}
+            t('admin.reactivateConfirm', { name: confirmDialog.name })}
           {confirmDialog?.action === 'make-admin' &&
-            `Promote ${confirmDialog.name} to Administrator? This grants full platform access.`}
+            t('admin.makeAdminConfirm', { name: confirmDialog.name })}
           {confirmDialog?.action === 'remove-admin' &&
-            `Remove administrator role from ${confirmDialog.name}? They will become a regular user.`}
+            t('admin.removeAdminConfirm', { name: confirmDialog.name })}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDialog(null)}>Cancel</Button>
+          <Button onClick={() => setConfirmDialog(null)}>{t('common.cancel')}</Button>
           <Button
             onClick={handleConfirm}
             variant="contained"
             color={confirmDialog?.action === 'make-admin' || confirmDialog?.action === 'remove-admin' ? 'secondary' : 'primary'}
             autoFocus
           >
-            Confirm
+            {t('common.confirm')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,5 +1,36 @@
 // theme.ts
-import { createTheme } from '@mui/material/styles';
+import { createTheme, Theme } from '@mui/material/styles';
+
+/** Supported locale codes. Add new RTL languages here and in getDirection/getFontFamily. */
+export const SUPPORTED_LOCALES = ['en', 'fa'] as const;
+export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
+
+export function isRtl(locale: string): boolean {
+  return locale === 'fa';
+}
+
+export function getDirection(locale: string): 'ltr' | 'rtl' {
+  return isRtl(locale) ? 'rtl' : 'ltr';
+}
+
+/** Standard Farsi/Persian font (RTL). */
+const FARSI_FONT_FAMILY = '"Vazirmatn", "Roboto", "Helvetica", "Arial", sans-serif';
+
+export function getFontFamily(locale: string): string | undefined {
+  return locale === 'fa' ? FARSI_FONT_FAMILY : undefined;
+}
+
+export function createAppTheme(base: Theme, locale: string): Theme {
+  const direction = getDirection(locale);
+  const fontFamily = getFontFamily(locale);
+  return createTheme({
+    ...base,
+    direction,
+    typography: fontFamily
+      ? { ...base.typography, fontFamily }
+      : base.typography,
+  });
+}
 
 const alertSnackbarOverrides = {
   MuiAlert: {
@@ -23,15 +54,35 @@ const alertSnackbarOverrides = {
       }),
       standardError: ({ theme }) => ({
         borderLeft: `4px solid ${theme.palette.error.main}`,
+        borderRight: 'none',
+        ...(theme.direction === 'rtl' && {
+          borderLeft: 'none',
+          borderRight: `4px solid ${theme.palette.error.main}`,
+        }),
       }),
       standardWarning: ({ theme }) => ({
         borderLeft: `4px solid ${theme.palette.warning?.main ?? '#ed6c02'}`,
+        borderRight: 'none',
+        ...(theme.direction === 'rtl' && {
+          borderLeft: 'none',
+          borderRight: `4px solid ${theme.palette.warning?.main ?? '#ed6c02'}`,
+        }),
       }),
       standardInfo: ({ theme }) => ({
         borderLeft: `4px solid ${theme.palette.info?.main ?? theme.palette.primary.main}`,
+        borderRight: 'none',
+        ...(theme.direction === 'rtl' && {
+          borderLeft: 'none',
+          borderRight: `4px solid ${theme.palette.info?.main ?? theme.palette.primary.main}`,
+        }),
       }),
       standardSuccess: ({ theme }) => ({
         borderLeft: `4px solid ${theme.palette.success?.main ?? '#2e7d32'}`,
+        borderRight: 'none',
+        ...(theme.direction === 'rtl' && {
+          borderLeft: 'none',
+          borderRight: `4px solid ${theme.palette.success?.main ?? '#2e7d32'}`,
+        }),
       }),
     },
   },

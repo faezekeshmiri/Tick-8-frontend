@@ -4,6 +4,7 @@ import { Alert, Box, Button, Card, Link, TextField, Typography } from '@mui/mate
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import AuthLayout from '../layouts/AuthLayout';
 import { forgotPassword } from '../api/auth';
 import { extractErrorMessage } from '../utils/error';
@@ -14,6 +15,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const ForgotPassword: React.FC = () => {
+  const { t } = useTranslation();
   const [successMsg, setSuccessMsg] = useState('');
   const [error, setError] = useState('');
 
@@ -29,7 +31,7 @@ const ForgotPassword: React.FC = () => {
       const msg = await forgotPassword(data.email);
       setSuccessMsg(msg);
     } catch (err) {
-      setError(extractErrorMessage(err, 'Something went wrong. Please try again.'));
+      setError(extractErrorMessage(err, t('forgotPassword.genericError')));
     }
   };
 
@@ -46,10 +48,10 @@ const ForgotPassword: React.FC = () => {
       >
         <Box sx={{ mb: 3, textAlign: 'center' }}>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Forgot Password
+            {t('forgotPassword.heading')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Enter your email and we'll send you a reset link.
+            {t('forgotPassword.description')}
           </Typography>
         </Box>
 
@@ -60,7 +62,7 @@ const ForgotPassword: React.FC = () => {
             </Alert>
             <Typography variant="body2" textAlign="center">
               <Link component={RouterLink} to="/login" sx={{ color: 'primary.main' }}>
-                Back to login
+                {t('forgotPassword.backToLogin')}
               </Link>
             </Typography>
           </>
@@ -73,7 +75,7 @@ const ForgotPassword: React.FC = () => {
             )}
             <TextField
               fullWidth
-              label="Email"
+              label={t('forgotPassword.email')}
               type="email"
               autoComplete="email"
               {...register('email')}
@@ -88,11 +90,11 @@ const ForgotPassword: React.FC = () => {
               disabled={isSubmitting}
               sx={{ py: 1.5, mb: 2 }}
             >
-              {isSubmitting ? 'Sending…' : 'Send Reset Link'}
+              {isSubmitting ? t('common.sendingEllipsis') : t('forgotPassword.sendResetLink')}
             </Button>
             <Typography variant="body2" textAlign="center">
               <Link component={RouterLink} to="/login" sx={{ color: 'primary.main' }}>
-                Back to login
+                {t('forgotPassword.backToLogin')}
               </Link>
             </Typography>
           </form>

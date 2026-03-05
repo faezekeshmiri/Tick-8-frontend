@@ -15,6 +15,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import AuthLayout from '../layouts/AuthLayout';
 import { resetPassword } from '../api/auth';
 import { extractErrorMessage } from '../utils/error';
@@ -35,6 +36,7 @@ const schema = z
 type FormData = z.infer<typeof schema>;
 
 const ResetPassword: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') ?? '';
@@ -50,17 +52,17 @@ const ResetPassword: React.FC = () => {
 
   const onSubmit = async (data: FormData) => {
     if (!token) {
-      setError('Invalid or missing reset token. Please request a new reset link.');
+      setError(t('resetPassword.invalidToken'));
       return;
     }
     try {
       setError('');
       await resetPassword(token, data.new_password);
       navigate('/login', {
-        state: { message: 'Password reset successfully. Please log in with your new password.' },
+        state: { message: t('resetPassword.resetSuccess') },
       });
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to reset password.'));
+      setError(extractErrorMessage(err, t('resetPassword.resetFailed')));
     }
   };
 
@@ -77,10 +79,10 @@ const ResetPassword: React.FC = () => {
       >
         <Box sx={{ mb: 3, textAlign: 'center' }}>
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Reset Password
+            {t('resetPassword.heading')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Enter your new password below.
+            {t('resetPassword.description')}
           </Typography>
         </Box>
 
@@ -92,23 +94,23 @@ const ResetPassword: React.FC = () => {
 
         {!token ? (
           <Alert severity="error">
-            Invalid reset link.{' '}
+            {t('resetPassword.invalidLink')}{' '}
             <Link component={RouterLink} to="/forgot-password">
-              Request a new one.
+              {t('resetPassword.requestNew')}
             </Link>
           </Alert>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <TextField
               fullWidth
-              label="New Password"
+              label={t('resetPassword.newPassword')}
               type={showNew ? 'text' : 'password'}
               autoComplete="new-password"
               {...register('new_password')}
               error={!!errors.new_password}
               helperText={
                 errors.new_password?.message ||
-                'At least 8 characters, one uppercase letter, one number'
+                t('resetPassword.passwordHint')
               }
               sx={{ mb: 2 }}
               InputProps={{
@@ -123,7 +125,7 @@ const ResetPassword: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Confirm New Password"
+              label={t('resetPassword.confirmNewPassword')}
               type={showConfirm ? 'text' : 'password'}
               autoComplete="new-password"
               {...register('confirm_password')}
@@ -147,7 +149,7 @@ const ResetPassword: React.FC = () => {
               disabled={isSubmitting}
               sx={{ py: 1.5 }}
             >
-              {isSubmitting ? 'Resetting…' : 'Reset Password'}
+              {isSubmitting ? t('common.resettingEllipsis') : t('resetPassword.resetButton')}
             </Button>
           </form>
         )}

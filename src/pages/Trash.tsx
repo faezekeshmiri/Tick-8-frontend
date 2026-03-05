@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Box,
@@ -60,6 +61,7 @@ const TrashItemRow: React.FC<TrashItemRowProps> = ({
   onRestore,
   restoring,
 }) => {
+  const { t } = useTranslation();
   const days = daysLeft(deletedAt);
   return (
     <Box className="flex items-center gap-3 py-2">
@@ -74,11 +76,11 @@ const TrashItemRow: React.FC<TrashItemRowProps> = ({
           </Typography>
         )}
         <Typography variant="caption" color="text.secondary" className="ml-2">
-          · Deleted {formatDate(deletedAt)}
+          {`· ${t('trash.deleted', { date: formatDate(deletedAt) })}`}
         </Typography>
       </Box>
       <Chip
-        label={`${days}d left`}
+        label={t('trash.daysLeft', { days })}
         size="small"
         color={days <= 3 ? "error" : days <= 7 ? "warning" : "default"}
         variant="outlined"
@@ -91,7 +93,7 @@ const TrashItemRow: React.FC<TrashItemRowProps> = ({
         disabled={restoring}
         sx={{ flexShrink: 0 }}
       >
-        Restore
+        {t('trash.restore')}
       </Button>
     </Box>
   );
@@ -125,6 +127,7 @@ const Section: React.FC<SectionProps> = ({ title, icon, count, children }) => (
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const Trash: React.FC = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [restoringKey, setRestoringKey] = useState<string | null>(null);
   const [restoreError, setRestoreError] = useState("");
@@ -144,7 +147,7 @@ const Trash: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['flashcards'] });
     },
     onSettled: () => setRestoringKey(null),
-    onError: (err) => setRestoreError(extractErrorMessage(err, "Failed to restore item.")),
+    onError: (err) => setRestoreError(extractErrorMessage(err, t('trash.restoreError'))),
   });
 
   const handleRestore = (type: TrashItemType, id: number) => {
@@ -152,7 +155,7 @@ const Trash: React.FC = () => {
     restoreMutation.mutate({ type, id });
   };
 
-  const error = listError ? extractErrorMessage(listError, "Failed to load trash.") : "";
+  const error = listError ? extractErrorMessage(listError, t('trash.loadError')) : "";
   const isEmpty =
     data && data.categories.length === 0 && data.subcategories.length === 0 && data.flashcards.length === 0;
 
@@ -165,16 +168,16 @@ const Trash: React.FC = () => {
             <Box className="flex items-center gap-2">
               <DeleteOutlineIcon />
               <Typography variant="h4" className="font-bold">
-                Trash
+                {t('trash.heading')}
               </Typography>
             </Box>
             <Typography variant="body1" color="text.secondary" className="mt-1">
-              Deleted items are kept for 30 days, then removed from here automatically.
+              {t('trash.description')}
             </Typography>
           </Box>
           {data && (
             <Chip
-              label={`${data.total} items`}
+              label={t('trash.itemsCount', { count: data.total })}
               color="secondary"
               variant="outlined"
               className="font-semibold"
@@ -198,10 +201,10 @@ const Trash: React.FC = () => {
             <CardContent className="py-12 text-center">
               <DeleteOutlineIcon sx={{ fontSize: 48 }} color="disabled" />
               <Typography variant="h6" className="font-semibold mt-3">
-                Trash is empty
+                {t('trash.emptyTitle')}
               </Typography>
               <Typography variant="body2" color="text.secondary" className="mt-1">
-                Deleted categories, subcategories, and flashcards will appear here.
+                {t('trash.emptyDescription')}
               </Typography>
             </CardContent>
           </Card>
@@ -209,7 +212,7 @@ const Trash: React.FC = () => {
           <>
             {/* Categories */}
             {data && data.categories.length > 0 && (
-              <Section title="Categories" icon={<FolderIcon color="action" />} count={data.categories.length}>
+              <Section title={t('trash.categoriesSection')} icon={<FolderIcon color="action" />} count={data.categories.length}>
                 {data.categories.map((item: TrashCategory) => (
                   <React.Fragment key={item.id}>
                     <TrashItemRow
@@ -228,7 +231,7 @@ const Trash: React.FC = () => {
 
             {/* Subcategories */}
             {data && data.subcategories.length > 0 && (
-              <Section title="Subcategories" icon={<LayersIcon color="action" />} count={data.subcategories.length}>
+              <Section title={t('trash.subcategoriesSection')} icon={<LayersIcon color="action" />} count={data.subcategories.length}>
                 {data.subcategories.map((item: TrashSubCategory) => (
                   <React.Fragment key={item.id}>
                     <TrashItemRow
@@ -247,12 +250,12 @@ const Trash: React.FC = () => {
 
             {/* Flashcards */}
             {data && data.flashcards.length > 0 && (
-              <Section title="Flashcards" icon={<StyleIcon color="action" />} count={data.flashcards.length}>
+              <Section title={t('trash.flashcardsSection')} icon={<StyleIcon color="action" />} count={data.flashcards.length}>
                 {data.flashcards.map((item: TrashFlashcard) => (
                   <React.Fragment key={item.id}>
                     <TrashItemRow
                       icon={<StyleIcon fontSize="small" />}
-                      title={item.front_preview ?? `Flashcard #${item.id}`}
+                      title={item.front_preview ?? t('trash.flashcardFallback', { id: item.id })}
                       deletedAt={item.deleted_at}
                       onRestore={() => handleRestore("flashcard", item.id)}
                       restoring={restoringKey === `flashcard-${item.id}`}

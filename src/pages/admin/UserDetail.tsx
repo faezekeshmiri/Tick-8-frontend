@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Avatar,
   Box,
@@ -63,6 +64,7 @@ const PROGRESS_LABELS: { key: keyof AdminUserDetailStats; label: string }[] = [
 const UserDetail: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [detail, setDetail] = useState<AdminUserDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -126,7 +128,7 @@ const UserDetail: React.FC = () => {
           }}
           onClick={() => navigate('/admin/users')}
         >
-          ← Back to users
+          ← {t('common.back')}
         </Typography>
       </Box>
     );
@@ -137,11 +139,11 @@ const UserDetail: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-        <IconButton aria-label="Back to users" onClick={() => navigate('/admin/users')} size="small">
+        <IconButton aria-label={t('common.back')} onClick={() => navigate('/admin/users')} size="small">
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h6" fontWeight="bold">
-          User details
+          {t('admin.userDetails')}
         </Typography>
       </Box>
 
@@ -163,24 +165,24 @@ const UserDetail: React.FC = () => {
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
               <Chip
-                label={user.role === 'admin' ? 'Admin' : 'User'}
+                label={user.role === 'admin' ? t('admin.adminRole') : t('admin.userRole')}
                 size="small"
                 color={user.role === 'admin' ? 'secondary' : 'default'}
               />
               <Chip
-                label={user.is_active ? 'Active' : 'Suspended'}
+                label={user.is_active ? t('admin.activeStatus') : t('admin.suspendedStatus')}
                 size="small"
                 color={user.is_active ? 'success' : 'error'}
                 variant="outlined"
               />
               <Chip
-                label={user.is_email_verified ? 'Verified' : 'Unverified'}
+                label={user.is_email_verified ? t('admin.verified') : t('admin.unverified')}
                 size="small"
                 color={user.is_email_verified ? 'success' : 'warning'}
                 variant="outlined"
               />
               <Typography variant="caption" color="text.secondary" sx={{ alignSelf: 'center' }}>
-                Joined {new Date(user.created_at).toLocaleDateString()}
+                {t('admin.joined')} {new Date(user.created_at).toLocaleDateString()}
               </Typography>
             </Box>
           </Box>
@@ -244,7 +246,7 @@ const UserDetail: React.FC = () => {
           size="small"
           onClick={() => navigate(`/admin/users/${userId}/content`)}
         >
-          Manage content (CRUD)
+          {t('admin.manageContent')}
         </Button>
       </Box>
       {categories.length === 0 ? (

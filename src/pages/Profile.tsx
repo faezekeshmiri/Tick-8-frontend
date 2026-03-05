@@ -16,6 +16,7 @@ import { Edit, Visibility, VisibilityOff } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import * as authApi from '../api/auth';
 import { extractErrorMessage } from '../utils/error';
@@ -54,6 +55,7 @@ type PasswordForm = z.infer<typeof passwordSchema>;
 // ── Component ─────────────────────────────────────────────────────────────────
 const Profile: React.FC = () => {
   const { user, updateUser, refreshUser } = useAuth();
+  const { t } = useTranslation();
   const [toast, setToast] = useState<{ message: string; severity: 'success' | 'error' } | null>(
     null
   );
@@ -90,9 +92,9 @@ const Profile: React.FC = () => {
       });
       updateUser(updated);
       setEditingProfile(false);
-      setToast({ message: 'Profile updated successfully.', severity: 'success' });
+      setToast({ message: t('profile.profileUpdated'), severity: 'success' });
     } catch (err) {
-      setToast({ message: extractErrorMessage(err, 'Failed to update profile.'), severity: 'error' });
+      setToast({ message: extractErrorMessage(err, t('profile.profileUpdateFailed')), severity: 'error' });
     }
   };
 
@@ -100,9 +102,9 @@ const Profile: React.FC = () => {
     try {
       const updated = await authApi.updateProfile({ avatar_url: url });
       updateUser(updated);
-      setToast({ message: 'Profile picture updated.', severity: 'success' });
+      setToast({ message: t('profile.pictureUpdated'), severity: 'success' });
     } catch (err) {
-      setToast({ message: extractErrorMessage(err, 'Failed to save profile picture.'), severity: 'error' });
+      setToast({ message: extractErrorMessage(err, t('profile.pictureSaveFailed')), severity: 'error' });
     }
   };
 
@@ -110,9 +112,9 @@ const Profile: React.FC = () => {
     try {
       const updated = await authApi.updateProfile({ avatar_url: '' });
       updateUser(updated);
-      setToast({ message: 'Profile picture removed.', severity: 'success' });
+      setToast({ message: t('profile.pictureRemoved'), severity: 'success' });
     } catch (err) {
-      setToast({ message: extractErrorMessage(err, 'Failed to remove profile picture.'), severity: 'error' });
+      setToast({ message: extractErrorMessage(err, t('profile.pictureRemoveFailed')), severity: 'error' });
       throw err;
     }
   };
@@ -127,7 +129,7 @@ const Profile: React.FC = () => {
       await refreshUser();
       setToast({ message: msg, severity: 'success' });
     } catch (err) {
-      setToast({ message: extractErrorMessage(err, 'Failed to update email.'), severity: 'error' });
+      setToast({ message: extractErrorMessage(err, t('profile.emailUpdateFailed')), severity: 'error' });
     }
   };
 
@@ -141,7 +143,7 @@ const Profile: React.FC = () => {
       setToast({ message: msg, severity: 'success' });
     } catch (err) {
       setToast({
-        message: extractErrorMessage(err, 'Failed to change password.'),
+        message: extractErrorMessage(err, t('profile.passwordChangeFailed')),
         severity: 'error',
       });
     }
@@ -157,7 +159,7 @@ const Profile: React.FC = () => {
   return (
     <Box sx={{ maxWidth: 680, mx: 'auto', py: 4, px: 2 }}>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
-        Profile
+        {t('profile.heading')}
       </Typography>
 
       {/* ── Profile Card ── */}
@@ -191,12 +193,12 @@ const Profile: React.FC = () => {
               >
                 <Typography variant="h6">{user.display_name}</Typography>
                 <Chip
-                  label={user.role === 'admin' ? 'Admin' : 'User'}
+                  label={user.role === 'admin' ? t('profile.adminChip') : t('profile.userChip')}
                   size="small"
                   color={user.role === 'admin' ? 'secondary' : 'default'}
                 />
                 {!editingProfile && (
-                  <IconButton onClick={() => setEditingProfile(true)} title="Edit profile" size="small">
+                  <IconButton onClick={() => setEditingProfile(true)} title={t('profile.editProfile')} size="small">
                     <Edit fontSize="small" />
                   </IconButton>
                 )}
@@ -209,7 +211,7 @@ const Profile: React.FC = () => {
                 <form onSubmit={profileForm.handleSubmit(onSaveProfile)} noValidate>
                   <TextField
                     fullWidth
-                    label="Display Name"
+                    label={t('profile.displayName')}
                     {...profileForm.register('display_name')}
                     error={!!profileForm.formState.errors.display_name}
                     helperText={profileForm.formState.errors.display_name?.message}
@@ -221,10 +223,10 @@ const Profile: React.FC = () => {
                       variant="contained"
                       disabled={profileForm.formState.isSubmitting}
                     >
-                      Save
+                      {t('common.save')}
                     </Button>
                     <Button variant="outlined" onClick={() => setEditingProfile(false)}>
-                      Cancel
+                      {t('common.cancel')}
                     </Button>
                   </Box>
                 </form>
@@ -238,18 +240,18 @@ const Profile: React.FC = () => {
       <Card sx={{ mb: 3, borderRadius: 3 }}>
         <CardContent>
           <Typography variant="h6" fontWeight="bold" gutterBottom>
-            Change Email Address
+            {t('profile.changeEmail')}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Your current email: <strong>{user.email}</strong>
+            {t('profile.currentEmail')} <strong>{user.email}</strong>
             {user.pending_email && (
-              <> · Pending confirmation: <strong>{user.pending_email}</strong></>
+              <> · {t('profile.pendingConfirmation')} <strong>{user.pending_email}</strong></>
             )}
           </Typography>
           <form onSubmit={emailForm.handleSubmit(onChangeEmail)} noValidate>
             <TextField
               fullWidth
-              label="New Email Address"
+              label={t('profile.newEmail')}
               type="email"
               autoComplete="email"
               {...emailForm.register('new_email')}
@@ -259,7 +261,7 @@ const Profile: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Current Password (to confirm)"
+              label={t('profile.currentPasswordConfirm')}
               type="password"
               autoComplete="current-password"
               {...emailForm.register('current_password')}
@@ -272,7 +274,7 @@ const Profile: React.FC = () => {
               variant="contained"
               disabled={emailForm.formState.isSubmitting}
             >
-              {emailForm.formState.isSubmitting ? 'Sending…' : 'Send Verification Link'}
+              {emailForm.formState.isSubmitting ? t('common.sendingEllipsis') : t('profile.sendVerificationLink')}
             </Button>
           </form>
         </CardContent>
@@ -282,12 +284,12 @@ const Profile: React.FC = () => {
       <Card sx={{ borderRadius: 3 }}>
         <CardContent>
           <Typography variant="h6" fontWeight="bold" gutterBottom>
-            Change Password
+            {t('profile.changePassword')}
           </Typography>
           <form onSubmit={passwordForm.handleSubmit(onChangePassword)} noValidate>
             <TextField
               fullWidth
-              label="Current Password"
+              label={t('profile.currentPassword')}
               type={showCurrentPw ? 'text' : 'password'}
               autoComplete="current-password"
               {...passwordForm.register('current_password')}
@@ -306,14 +308,14 @@ const Profile: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="New Password"
+              label={t('profile.newPassword')}
               type={showNewPw ? 'text' : 'password'}
               autoComplete="new-password"
               {...passwordForm.register('new_password')}
               error={!!passwordForm.formState.errors.new_password}
               helperText={
                 passwordForm.formState.errors.new_password?.message ||
-                'At least 8 characters, one uppercase letter, one number'
+                t('profile.passwordHint')
               }
               sx={{ mb: 2 }}
               InputProps={{
@@ -328,7 +330,7 @@ const Profile: React.FC = () => {
             />
             <TextField
               fullWidth
-              label="Confirm New Password"
+              label={t('profile.confirmNewPassword')}
               type={showConfirmPw ? 'text' : 'password'}
               autoComplete="new-password"
               {...passwordForm.register('confirm_password')}
@@ -350,7 +352,7 @@ const Profile: React.FC = () => {
               variant="contained"
               disabled={passwordForm.formState.isSubmitting}
             >
-              {passwordForm.formState.isSubmitting ? 'Updating…' : 'Update Password'}
+              {passwordForm.formState.isSubmitting ? t('common.updatingEllipsis') : t('profile.updatePassword')}
             </Button>
           </form>
         </CardContent>

@@ -6,6 +6,7 @@ import Subscript from '@tiptap/extension-subscript';
 import Superscript from '@tiptap/extension-superscript';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Box, Divider, IconButton, Tooltip, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import FormatBoldIcon from '@mui/icons-material/FormatBold';
 import FormatItalicIcon from '@mui/icons-material/FormatItalic';
 import FormatUnderlinedIcon from '@mui/icons-material/FormatUnderlined';
@@ -70,6 +71,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   error,
   errorText,
 }) => {
+  const { t } = useTranslation();
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -125,7 +127,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           }}
         >
           <ToolbarBtn
-            title="Bold (Ctrl+B)"
+            title={t('richText.bold')}
             active={editor.isActive('bold')}
             onClick={() => editor.chain().focus().toggleBold().run()}
           >
@@ -133,7 +135,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </ToolbarBtn>
 
           <ToolbarBtn
-            title="Italic (Ctrl+I)"
+            title={t('richText.italic')}
             active={editor.isActive('italic')}
             onClick={() => editor.chain().focus().toggleItalic().run()}
           >
@@ -141,7 +143,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </ToolbarBtn>
 
           <ToolbarBtn
-            title="Underline (Ctrl+U)"
+            title={t('richText.underline')}
             active={editor.isActive('underline')}
             onClick={() => editor.chain().focus().toggleUnderline().run()}
           >
@@ -149,7 +151,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </ToolbarBtn>
 
           <ToolbarBtn
-            title="Strikethrough"
+            title={t('richText.strikethrough')}
             active={editor.isActive('strike')}
             onClick={() => editor.chain().focus().toggleStrike().run()}
           >
@@ -159,7 +161,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.25 }} />
 
           <ToolbarBtn
-            title="Bullet list"
+            title={t('richText.bulletList')}
             active={editor.isActive('bulletList')}
             onClick={() => editor.chain().focus().toggleBulletList().run()}
           >
@@ -167,7 +169,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </ToolbarBtn>
 
           <ToolbarBtn
-            title="Numbered list"
+            title={t('richText.numberedList')}
             active={editor.isActive('orderedList')}
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
           >
@@ -177,7 +179,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.25 }} />
 
           <ToolbarBtn
-            title="Subscript (e.g. H₂O)"
+            title={t('richText.subscript')}
             active={editor.isActive('subscript')}
             onClick={() => editor.chain().focus().toggleSubscript().run()}
           >
@@ -185,7 +187,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           </ToolbarBtn>
 
           <ToolbarBtn
-            title="Superscript (e.g. x²)"
+            title={t('richText.superscript')}
             active={editor.isActive('superscript')}
             onClick={() => editor.chain().focus().toggleSuperscript().run()}
           >
@@ -195,7 +197,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.25 }} />
 
           <ToolbarBtn
-            title="Clear formatting"
+            title={t('richText.clearFormatting')}
             onClick={() => editor.chain().focus().clearNodes().unsetAllMarks().run()}
           >
             <FormatClearIcon sx={{ fontSize: 18 }} />

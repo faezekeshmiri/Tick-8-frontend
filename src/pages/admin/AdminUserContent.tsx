@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Box,
@@ -37,6 +38,7 @@ const PER_PAGE = 100;
 const AdminUserContent: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const uid = userId ? parseInt(userId, 10) : NaN;
 
   const [userName, setUserName] = useState<string>('');
@@ -305,7 +307,7 @@ const AdminUserContent: React.FC = () => {
     return (
       <Box>
         <Typography color="error">Invalid user.</Typography>
-        <Button onClick={() => navigate('/admin/users')}>Back to users</Button>
+        <Button onClick={() => navigate('/admin/users')}>{t('common.back')}</Button>
       </Box>
     );
   }
@@ -323,7 +325,7 @@ const AdminUserContent: React.FC = () => {
       <Box>
         <Alert severity="error">{error}</Alert>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(`/admin/users/${uid}`)} sx={{ mt: 2 }}>
-          Back
+          {t('common.back')}
         </Button>
       </Box>
     );
@@ -332,7 +334,7 @@ const AdminUserContent: React.FC = () => {
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-        <IconButton aria-label="Back" onClick={() => navigate(`/admin/users/${uid}`)} size="small">
+        <IconButton aria-label={t('common.back')} onClick={() => navigate(`/admin/users/${uid}`)} size="small">
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h6" fontWeight="bold">
@@ -539,14 +541,14 @@ const AdminUserContent: React.FC = () => {
           <TextField
             autoFocus
             margin="dense"
-            label="Title"
+            label={t('common.title')}
             fullWidth
             value={catDialog.title}
             onChange={(e) => setCatDialog((d) => ({ ...d, title: e.target.value }))}
           />
           <TextField
             margin="dense"
-            label="Description"
+            label={t('common.descriptionOptional')}
             fullWidth
             multiline
             rows={2}
@@ -555,9 +557,9 @@ const AdminUserContent: React.FC = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCatDialog((d) => ({ ...d, open: false }))}>Cancel</Button>
+          <Button onClick={() => setCatDialog((d) => ({ ...d, open: false }))}>{t('common.cancel')}</Button>
           <Button onClick={saveCategory} variant="contained" disabled={catSaving}>
-            {catSaving ? <CircularProgress size={20} /> : 'Save'}
+            {catSaving ? <CircularProgress size={20} /> : t('common.save')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -570,14 +572,14 @@ const AdminUserContent: React.FC = () => {
           <TextField
             autoFocus
             margin="dense"
-            label="Title"
+            label={t('common.title')}
             fullWidth
             value={subDialog.title}
             onChange={(e) => setSubDialog((d) => ({ ...d, title: e.target.value }))}
           />
           <TextField
             margin="dense"
-            label="Description"
+            label={t('common.descriptionOptional')}
             fullWidth
             multiline
             rows={2}
@@ -586,9 +588,9 @@ const AdminUserContent: React.FC = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setSubDialog((d) => ({ ...d, open: false }))}>Cancel</Button>
+          <Button onClick={() => setSubDialog((d) => ({ ...d, open: false }))}>{t('common.cancel')}</Button>
           <Button onClick={saveSub} variant="contained" disabled={subSaving}>
-            {subSaving ? <CircularProgress size={20} /> : 'Save'}
+            {subSaving ? <CircularProgress size={20} /> : t('common.save')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -636,9 +638,9 @@ const AdminUserContent: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCardDialog((d) => ({ ...d, open: false }))}>Cancel</Button>
+          <Button onClick={() => setCardDialog((d) => ({ ...d, open: false }))}>{t('common.cancel')}</Button>
           <Button onClick={saveCard} variant="contained" disabled={cardSaving}>
-            {cardSaving ? <CircularProgress size={20} /> : 'Save'}
+            {cardSaving ? <CircularProgress size={20} /> : t('common.save')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -650,9 +652,9 @@ const AdminUserContent: React.FC = () => {
           This will soft-delete &quot;{deleteCat?.title}&quot; and all its subcategories and flashcards. They can be restored from Trash.
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteCat(null)}>Cancel</Button>
+          <Button onClick={() => setDeleteCat(null)}>{t('common.cancel')}</Button>
           <Button onClick={confirmDeleteCategory} color="error" variant="contained">
-            Delete
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -662,9 +664,9 @@ const AdminUserContent: React.FC = () => {
           This will soft-delete &quot;{deleteSub?.title}&quot; and all its flashcards. They can be restored from Trash.
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteSub(null)}>Cancel</Button>
+          <Button onClick={() => setDeleteSub(null)}>{t('common.cancel')}</Button>
           <Button onClick={confirmDeleteSub} color="error" variant="contained">
-            Delete
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -674,9 +676,9 @@ const AdminUserContent: React.FC = () => {
           This card will be moved to Trash and can be restored.
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteCard(null)}>Cancel</Button>
+          <Button onClick={() => setDeleteCard(null)}>{t('common.cancel')}</Button>
           <Button onClick={confirmDeleteCard} color="error" variant="contained">
-            Delete
+            {t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>

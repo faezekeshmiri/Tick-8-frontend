@@ -2,6 +2,7 @@ import React from "react";
 import { Box, Button, Card, CardContent, Chip, Typography } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useTranslation } from 'react-i18next';
 import type { SubCategory } from "../types/content.types";
 
 // Deterministic color palette derived from the subcategory id
@@ -35,6 +36,7 @@ type SubCategoryCardProps = {
 };
 
 const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ item, onClick, onEdit, onDelete }) => {
+  const { t } = useTranslation();
   const color = cardColor(item.id);
 
   return (
@@ -111,7 +113,7 @@ const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ item, onClick, onEdit
 
           <Box className="mt-auto pt-2">
             <Chip
-              label={`${item.flashcard_count} flashcards`}
+              label={t('subCategoryCard.flashcardsCount', { count: item.flashcard_count })}
               size="small"
               variant="outlined"
               sx={{ borderColor: color, color }}
@@ -124,7 +126,7 @@ const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ item, onClick, onEdit
               startIcon={<EditIcon />}
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
             >
-              Edit
+              {t('common.edit')}
             </Button>
             <Button
               size="small"
@@ -132,7 +134,7 @@ const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ item, onClick, onEdit
               startIcon={<DeleteIcon />}
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
             >
-              Delete
+              {t('common.delete')}
             </Button>
           </Box>
         </CardContent>

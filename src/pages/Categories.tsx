@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
@@ -44,6 +45,7 @@ import { extractErrorMessage } from "../utils/error";
 const PER_PAGE = 12;
 
 const Categories: React.FC = () => {
+  const { t } = useTranslation();
   const { isDarkMode } = useThemeMode();
   const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const navigate = useNavigate();
@@ -65,7 +67,7 @@ const Categories: React.FC = () => {
   const categories = data?.items ?? [];
   const total = data?.total ?? 0;
   const pages = data?.pages ?? 1;
-  const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, "Failed to load categories.") : "";
+  const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, t('categories.loadError')) : "";
 
   const saveMutation = useMutation({
     mutationFn: async (payload: {
@@ -141,7 +143,7 @@ const Categories: React.FC = () => {
   const handleSave = async () => {
     const trimmedTitle = formTitle.trim();
     if (!trimmedTitle) {
-      setFormError("Title is required.");
+      setFormError(t('common.titleRequired'));
       return;
     }
     setFormError("");
@@ -153,7 +155,7 @@ const Categories: React.FC = () => {
       },
       {
         onError: (err) => {
-          setFormError(extractErrorMessage(err, "Failed to save category."));
+          setFormError(extractErrorMessage(err, t('categories.saveError')));
         },
       }
     );
@@ -174,14 +176,14 @@ const Categories: React.FC = () => {
         <Box className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Box>
             <Typography variant="h4" className="font-bold">
-              Categories
+              {t('categories.heading')}
             </Typography>
             <Typography variant="body1" color="text.secondary" className="mt-1">
-              Organize your study sets by topic.
+              {t('categories.description')}
             </Typography>
           </Box>
           <Chip
-            label={`${total} total`}
+            label={t('categories.totalCount', { count: total })}
             color="secondary"
             variant="outlined"
             className="font-semibold"
@@ -194,7 +196,7 @@ const Categories: React.FC = () => {
         <Box component="form" onSubmit={handleSearchSubmit} className="mb-5 flex gap-2">
           <TextField
             size="small"
-            placeholder="Search categories…"
+            placeholder={t('categories.searchPlaceholder')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             InputProps={{
@@ -207,7 +209,7 @@ const Categories: React.FC = () => {
             sx={{ flex: 1, maxWidth: 400 }}
           />
           <Button type="submit" variant="outlined" size="small">
-            Search
+            {t('common.search')}
           </Button>
           {search && (
             <Button
@@ -215,7 +217,7 @@ const Categories: React.FC = () => {
               size="small"
               onClick={() => { setSearchInput(""); setSearch(""); setPage(1); }}
             >
-              Clear
+              {t('common.clear')}
             </Button>
           )}
         </Box>
@@ -237,10 +239,10 @@ const Categories: React.FC = () => {
             <CardContent className="py-12 text-center">
               <FolderOpenIcon sx={{ fontSize: 48 }} color="disabled" />
               <Typography variant="h6" className="font-semibold mt-3">
-                {search ? "No categories match your search." : "No categories yet"}
+                {search ? t('categories.noMatch') : t('categories.noneYet')}
               </Typography>
               <Typography variant="body2" color="text.secondary" className="mt-1">
-                {search ? "Try a different keyword." : "Create your first category to get started."}
+                {search ? t('categories.tryDifferent') : t('categories.createFirst')}
               </Typography>
             </CardContent>
           </Card>
@@ -280,13 +282,13 @@ const Categories: React.FC = () => {
                     </Box>
                     <Box className="mt-3 flex gap-2 flex-wrap">
                       <Chip
-                        label={`${cat.subcategory_count} subcategories`}
+                        label={t('categories.subcategoriesCount', { count: cat.subcategory_count })}
                         size="small"
                         variant="outlined"
                         color="primary"
                       />
                       <Chip
-                        label={`${cat.flashcard_count} flashcards`}
+                        label={t('categories.flashcardsCount', { count: cat.flashcard_count })}
                         size="small"
                         variant="outlined"
                         color="secondary"
@@ -299,7 +301,7 @@ const Categories: React.FC = () => {
                       startIcon={<EditIcon />}
                       onClick={(e) => { e.stopPropagation(); openEditDialog(cat); }}
                     >
-                      Edit
+                      {t('common.edit')}
                     </Button>
                     <Button
                       size="small"
@@ -307,7 +309,7 @@ const Categories: React.FC = () => {
                       startIcon={<DeleteIcon />}
                       onClick={(e) => { e.stopPropagation(); setDeleteTarget(cat); }}
                     >
-                      Delete
+                      {t('common.delete')}
                     </Button>
                   </CardActions>
                 </Card>
@@ -330,7 +332,7 @@ const Categories: React.FC = () => {
 
       {/* ── FAB ── */}
       <Fab
-        aria-label="add category"
+        aria-label={t('categories.addCategory')}
         onClick={openCreateDialog}
         sx={{
           position: "fixed",
@@ -353,8 +355,8 @@ const Categories: React.FC = () => {
       {/* ── Create / Edit dialog ── */}
       <Dialog open={isDialogOpen} onClose={closeDialog} fullWidth maxWidth="xs">
         <DialogTitle className="flex items-center justify-between py-3 px-3">
-          {editingCategory ? "Edit category" : "New category"}
-          <IconButton aria-label="close" onClick={closeDialog} size="small">
+          {editingCategory ? t('categories.editCategory') : t('categories.newCategory')}
+          <IconButton aria-label={t('common.close')} onClick={closeDialog} size="small">
             <CloseIcon />
           </IconButton>
         </DialogTitle>
@@ -362,7 +364,7 @@ const Categories: React.FC = () => {
           <TextField
             autoFocus
             fullWidth
-            label="Title"
+            label={t('common.title')}
             value={formTitle}
             onChange={(e) => { setFormTitle(e.target.value); setFormError(""); }}
             error={!!formError && !formTitle.trim()}
@@ -371,7 +373,7 @@ const Categories: React.FC = () => {
           />
           <TextField
             fullWidth
-            label="Description (optional)"
+            label={t('common.descriptionOptional')}
             value={formDescription}
             onChange={(e) => setFormDescription(e.target.value)}
             multiline
@@ -386,29 +388,26 @@ const Categories: React.FC = () => {
         </DialogContent>
         <DialogActions className="px-3 pb-3 pt-2 gap-1">
           <Button onClick={closeDialog} variant="text" disabled={saveMutation.isPending}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSave} variant="contained" disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? <CircularProgress size={18} /> : editingCategory ? "Update" : "Create"}
+            {saveMutation.isPending ? <CircularProgress size={18} /> : editingCategory ? t('common.update') : t('common.create')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* ── Delete confirmation dialog ── */}
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete category?</DialogTitle>
+        <DialogTitle>{t('categories.deleteCategory')}</DialogTitle>
         <DialogContent>
-          <Typography variant="body2">
-            Deleting <strong>"{deleteTarget?.title}"</strong> will also delete all subcategories
-            and flashcards inside it. This cannot be undone.
-          </Typography>
+          <Typography variant="body2" dangerouslySetInnerHTML={{ __html: t('categories.deleteWarning', { title: deleteTarget?.title }) }} />
         </DialogContent>
         <DialogActions className="px-3 pb-3 gap-1">
           <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleteMutation.isPending}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleDelete} color="error" variant="contained" disabled={deleteMutation.isPending}>
-            {deleteMutation.isPending ? <CircularProgress size={18} /> : "Delete"}
+            {deleteMutation.isPending ? <CircularProgress size={18} /> : t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>

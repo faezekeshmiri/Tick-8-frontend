@@ -11,6 +11,7 @@ import {
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getTodaysQueueWithCards,
@@ -32,6 +33,7 @@ const marksToTickMarks = (front: MarkType[], back: MarkType[]): ("remembered" | 
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const saveTicksTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -80,12 +82,12 @@ const Home: React.FC = () => {
     [ticksMutation]
   );
 
-  const error = listError ? extractErrorMessage(listError, "Failed to load study queue.") : "";
+  const error = listError ? extractErrorMessage(listError, t('home.failedToLoad')) : "";
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", px: 2, py: 3 }}>
       <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
-        Today&apos;s Study
+        {t('home.todaysStudy')}
       </Typography>
 
       {error && (
@@ -116,16 +118,16 @@ const Home: React.FC = () => {
                       <AddCircleOutlineIcon color="action" sx={{ mt: 0.25 }} />
                       <Box>
                         <Typography variant="subtitle1" fontWeight={600} color="text.primary" gutterBottom>
-                          You haven&apos;t added any flashcards yet
+                          {t('home.noFlashcardsTitle')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          Get started by adding categories, then subcategories, and finally your flashcards. Your reviews will show up here once you have cards to study.
+                          {t('home.noFlashcardsDesc')}
                         </Typography>
                         <Button
                           variant="contained"
                           onClick={() => navigate("/categories")}
                         >
-                          Go to Categories
+                          {t('home.goToCategories')}
                         </Button>
                       </Box>
                     </Box>
@@ -136,12 +138,12 @@ const Home: React.FC = () => {
                   <CardContent>
                     <Typography color={error ? "error" : "text.secondary"} sx={{ mb: 2 }}>
                       {error
-                        ? "Could not load your study queue. Check that the backend is running and migrations are applied."
+                        ? t('home.loadError')
                         : (
                           <>
-                            You&apos;re all caught up!
+                            {t('home.allCaughtUp')}
                             {nextDate && (
-                              <> Your next review is on {new Date(nextDate).toLocaleDateString()}.</>
+                              <> {t('home.nextReviewOn', { date: new Date(nextDate).toLocaleDateString() })}</>
                             )}
                           </>
                         )}
@@ -190,14 +192,14 @@ const Home: React.FC = () => {
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
                   <CalendarTodayIcon color="action" />
                   <Typography variant="subtitle1" color="text.secondary">
-                    Upcoming Reviews
+                    {t('home.upcomingReviews')}
                   </Typography>
                 </Box>
                 <Typography variant="body2" color="text.secondary">
                   {upcoming
                     .map((day, i) => {
                       const label =
-                        i === 0 ? "Tomorrow" : i === 1 ? "In 2 days" : `In ${i + 1} days`;
+                        i === 0 ? t('home.tomorrow') : t('home.inDays', { count: i + 1 });
                       return `${label}: ${day.count}`;
                     })
                     .join(" · ")}
@@ -212,7 +214,7 @@ const Home: React.FC = () => {
             onClick={() => navigate("/categories")}
             sx={{ mt: 1 }}
           >
-            Browse categories
+            {t('home.browseCategories')}
           </Button>
         </>
       )}

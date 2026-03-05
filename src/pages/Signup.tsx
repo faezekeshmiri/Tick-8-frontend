@@ -15,6 +15,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import AuthLayout from '../layouts/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { extractErrorMessage } from '../utils/error';
@@ -43,6 +44,7 @@ const signupSchema = z
 type SignupFormData = z.infer<typeof signupSchema>;
 
 const Signup: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { register: registerUser } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +69,7 @@ const Signup: React.FC = () => {
       });
       navigate('/');
     } catch (err) {
-      setError(extractErrorMessage(err, 'Failed to create account. Please try again.'));
+      setError(extractErrorMessage(err, t('signup.signupFailed')));
     }
   };
 
@@ -84,10 +86,10 @@ const Signup: React.FC = () => {
       >
         <Box sx={{ mb: 3, textAlign: 'center' }}>
           <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
-            Create Account
+            {t('signup.createAccount')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Join Tick 8 and start mastering knowledge
+            {t('signup.subtitle')}
           </Typography>
         </Box>
 
@@ -100,7 +102,7 @@ const Signup: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField
             fullWidth
-            label="Display Name"
+            label={t('signup.displayName')}
             autoComplete="name"
             {...register('display_name')}
             error={!!errors.display_name}
@@ -110,7 +112,7 @@ const Signup: React.FC = () => {
 
           <TextField
             fullWidth
-            label="Email"
+            label={t('signup.email')}
             type="email"
             autoComplete="email"
             {...register('email')}
@@ -121,14 +123,14 @@ const Signup: React.FC = () => {
 
           <TextField
             fullWidth
-            label="Password"
+            label={t('signup.password')}
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
             {...register('password')}
             error={!!errors.password}
             helperText={
               errors.password?.message ||
-              'At least 8 characters, one uppercase letter, and one number'
+              t('signup.passwordHint')
             }
             sx={{ mb: 2 }}
             InputProps={{
@@ -137,7 +139,7 @@ const Signup: React.FC = () => {
                   <IconButton
                     onClick={() => setShowPassword((p) => !p)}
                     edge="end"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -148,7 +150,7 @@ const Signup: React.FC = () => {
 
           <TextField
             fullWidth
-            label="Confirm Password"
+            label={t('signup.confirmPassword')}
             type={showConfirm ? 'text' : 'password'}
             autoComplete="new-password"
             {...register('confirmPassword')}
@@ -161,7 +163,7 @@ const Signup: React.FC = () => {
                   <IconButton
                     onClick={() => setShowConfirm((p) => !p)}
                     edge="end"
-                    aria-label={showConfirm ? 'Hide password' : 'Show password'}
+                    aria-label={showConfirm ? t('login.hidePassword') : t('login.showPassword')}
                   >
                     {showConfirm ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -177,13 +179,13 @@ const Signup: React.FC = () => {
             disabled={isSubmitting}
             sx={{ py: 1.5, mb: 2 }}
           >
-            {isSubmitting ? 'Creating account…' : 'Sign Up'}
+            {isSubmitting ? t('common.creatingAccountEllipsis') : t('signup.signUpButton')}
           </Button>
 
           <Typography variant="body2" textAlign="center">
-            Already have an account?{' '}
+            {t('signup.haveAccount')}{' '}
             <Link component={RouterLink} to="/login" sx={{ color: 'primary.main' }}>
-              Log in
+              {t('signup.logInLink')}
             </Link>
           </Typography>
         </form>

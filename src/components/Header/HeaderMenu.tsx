@@ -6,6 +6,7 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { useTranslation } from 'react-i18next';
 import { ThemeModeContext } from "../../contexts/ThemeContext";
 import { lightTheme, darkTheme } from "../../assets/theme";
 
@@ -14,6 +15,7 @@ type HeaderMenuProps = {
 };
 
 export default function HeaderMenu({ onLogout }: HeaderMenuProps) {
+  const { t } = useTranslation();
   const { isDarkMode, toggleTheme } = React.useContext(ThemeModeContext);
   const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -79,14 +81,14 @@ export default function HeaderMenu({ onLogout }: HeaderMenuProps) {
             )}
           </ListItemIcon>
           <ListItemText>
-            {isDarkMode ? "Light Mode" : "Dark Mode"}
+            {isDarkMode ? t('nav.lightMode') : t('nav.darkMode')}
           </ListItemText>
         </MenuItem>
         <MenuItem onClick={handleLogout}>
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Logout</ListItemText>
+          <ListItemText>{t('nav.logout')}</ListItemText>
         </MenuItem>
       </Menu>
     </div>

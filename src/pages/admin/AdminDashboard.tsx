@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Card,
@@ -25,15 +26,16 @@ import {
 import * as adminApi from '../../api/admin';
 import { AdminStats, AdminUserView } from '../../types/auth.types';
 
-const STAT_CARDS: { key: keyof AdminStats; label: string; icon: React.ReactNode; color: string }[] = [
-  { key: 'total_users', label: 'Total Users', icon: <PeopleIcon />, color: 'primary.main' },
-  { key: 'active_users', label: 'Active', icon: <PersonIcon />, color: 'success.main' },
-  { key: 'suspended_users', label: 'Suspended', icon: <PersonOffIcon />, color: 'error.main' },
-  { key: 'admin_count', label: 'Administrators', icon: <AdminIcon />, color: 'secondary.main' },
-];
-
 const AdminDashboard: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
+
+  const STAT_CARDS: { key: keyof AdminStats; label: string; icon: React.ReactNode; color: string }[] = [
+    { key: 'total_users', label: t('admin.totalUsers'), icon: <PeopleIcon />, color: 'primary.main' },
+    { key: 'active_users', label: t('admin.active'), icon: <PersonIcon />, color: 'success.main' },
+    { key: 'suspended_users', label: t('admin.suspended'), icon: <PersonOffIcon />, color: 'error.main' },
+    { key: 'admin_count', label: t('admin.administrators'), icon: <AdminIcon />, color: 'secondary.main' },
+  ];
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [recentUsers, setRecentUsers] = useState<AdminUserView[]>([]);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -98,7 +100,7 @@ const AdminDashboard: React.FC = () => {
       </Grid>
 
       <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
-        Recent users
+        {t('admin.recentUsers')}
       </Typography>
       <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2, mb: 2 }}>
         {usersLoading ? (
@@ -109,11 +111,11 @@ const AdminDashboard: React.FC = () => {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Email</TableCell>
-                <TableCell>Role</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Joined</TableCell>
+                <TableCell>{t('admin.name')}</TableCell>
+                <TableCell>{t('admin.email')}</TableCell>
+                <TableCell>{t('admin.role')}</TableCell>
+                <TableCell>{t('admin.status')}</TableCell>
+                <TableCell>{t('admin.joined')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -126,8 +128,8 @@ const AdminDashboard: React.FC = () => {
                 >
                   <TableCell>{u.display_name}</TableCell>
                   <TableCell sx={{ color: 'text.secondary' }}>{u.email}</TableCell>
-                  <TableCell>{u.role === 'admin' ? 'Admin' : 'User'}</TableCell>
-                  <TableCell>{u.is_active ? 'Active' : 'Suspended'}</TableCell>
+                  <TableCell>{u.role === 'admin' ? t('admin.adminRole') : t('admin.userRole')}</TableCell>
+                  <TableCell>{u.is_active ? t('admin.activeStatus') : t('admin.suspendedStatus')}</TableCell>
                   <TableCell sx={{ color: 'text.secondary' }}>
                     {new Date(u.created_at).toLocaleDateString()}
                   </TableCell>
@@ -153,7 +155,7 @@ const AdminDashboard: React.FC = () => {
           }}
           onClick={() => navigate('/admin/users')}
         >
-          View all users
+          {t('admin.viewAllUsers')}
           <ArrowForwardIcon fontSize="small" />
         </Typography>
       </Box>

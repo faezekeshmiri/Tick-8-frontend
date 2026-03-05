@@ -17,6 +17,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useTranslation } from 'react-i18next';
 import AuthLayout from '../layouts/AuthLayout';
 import { useAuth } from '../contexts/AuthContext';
 import { extractErrorMessage } from '../utils/error';
@@ -30,6 +31,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -54,7 +56,7 @@ const Login: React.FC = () => {
       await login({ email: data.email, password: data.password, remember_me: data.remember_me });
       navigate('/');
     } catch (err) {
-      setError(extractErrorMessage(err, 'Invalid email or password.'));
+      setError(extractErrorMessage(err, t('login.invalidCredentials')));
     }
   };
 
@@ -71,10 +73,10 @@ const Login: React.FC = () => {
       >
         <Box sx={{ mb: 3, textAlign: 'center' }}>
           <Typography variant="h4" component="h1" fontWeight="bold" gutterBottom>
-            Welcome Back
+            {t('login.welcomeBack')}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Log in to your Tick 8 account
+            {t('login.subtitle')}
           </Typography>
         </Box>
 
@@ -87,7 +89,7 @@ const Login: React.FC = () => {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <TextField
             fullWidth
-            label="Email"
+            label={t('login.email')}
             type="email"
             autoComplete="email"
             {...register('email')}
@@ -98,7 +100,7 @@ const Login: React.FC = () => {
 
           <TextField
             fullWidth
-            label="Password"
+            label={t('login.password')}
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             {...register('password')}
@@ -111,7 +113,7 @@ const Login: React.FC = () => {
                   <IconButton
                     onClick={() => setShowPassword((p) => !p)}
                     edge="end"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -136,7 +138,7 @@ const Login: React.FC = () => {
                   size="small"
                 />
               }
-              label={<Typography variant="body2">Remember me</Typography>}
+              label={<Typography variant="body2">{t('login.rememberMe')}</Typography>}
             />
             <Link
               component={RouterLink}
@@ -144,7 +146,7 @@ const Login: React.FC = () => {
               variant="body2"
               sx={{ color: 'primary.main' }}
             >
-              Forgot password?
+              {t('login.forgotPassword')}
             </Link>
           </Box>
 
@@ -155,13 +157,13 @@ const Login: React.FC = () => {
             disabled={isSubmitting}
             sx={{ py: 1.5, mb: 2 }}
           >
-            {isSubmitting ? 'Logging in…' : 'Login'}
+            {isSubmitting ? t('common.loggingInEllipsis') : t('login.loginButton')}
           </Button>
 
           <Typography variant="body2" textAlign="center">
-            Don't have an account?{' '}
+            {t('login.noAccount')}{' '}
             <Link component={RouterLink} to="/signup" sx={{ color: 'primary.main' }}>
-              Sign up
+              {t('login.signUpLink')}
             </Link>
           </Typography>
         </form>

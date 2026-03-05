@@ -21,6 +21,7 @@ import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { useTranslation } from 'react-i18next';
 import { uploadImage, resolveImageUrl } from '../api/upload';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -43,6 +44,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   onError,
   size = 120,
 }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -57,11 +59,11 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const processFile = useCallback(
     async (file: File) => {
       if (!ACCEPTED_TYPES.includes(file.type)) {
-        onError('Please upload a JPG, PNG, or WebP image.');
+        onError(t('avatar.invalidType'));
         return;
       }
       if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        onError(`Image must be smaller than ${MAX_SIZE_MB} MB.`);
+        onError(t('avatar.tooLarge', { size: MAX_SIZE_MB }));
         return;
       }
 
@@ -75,7 +77,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         onUploaded(url);
       } catch {
         setPreviewUrl(null);
-        onError('Failed to upload image. Please try again.');
+        onError(t('avatar.uploadFailed'));
       } finally {
         setUploading(false);
       }
@@ -125,7 +127,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       setModalOpen(false);
       setPreviewUrl(null);
     } catch {
-      onError('Failed to remove profile picture.');
+      onError(t('avatar.removeFailed'));
     } finally {
       setRemoving(false);
     }
@@ -234,7 +236,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
               }}
             >
               <Typography variant="h6" fontWeight={600}>
-                Upload Profile Picture
+                {t('avatar.uploadTitle')}
               </Typography>
               <IconButton onClick={() => setModalOpen(false)} size="small">
                 <CloseIcon fontSize="small" />
@@ -284,10 +286,10 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                   color={dragOver ? 'primary.main' : 'text.primary'}
                   sx={{ transition: 'color 0.2s' }}
                 >
-                  Drag &amp; drop your image here
+                  {t('avatar.dragDrop')}
                 </Typography>
                 <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
-                  JPG, PNG, or WebP · Max {MAX_SIZE_MB} MB
+                  {t('avatar.fileHint', { size: MAX_SIZE_MB })}
                 </Typography>
               </Box>
 
@@ -302,7 +304,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
               >
                 <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
                 <Typography variant="body2" color="text.secondary">
-                  or
+                  {t('common.or')}
                 </Typography>
                 <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
               </Box>
@@ -315,7 +317,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                 onClick={() => inputRef.current?.click()}
                 sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
               >
-                Choose from Computer
+                {t('avatar.chooseFromComputer')}
               </Button>
 
               {/* Remove photo — only when there is an avatar and onRemoved is provided */}
@@ -334,7 +336,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                       '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08) },
                     }}
                   >
-                    Remove photo
+                    {t('avatar.removePhoto')}
                   </Button>
                 </>
               )}
@@ -352,16 +354,16 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
         <DialogTitle id="remove-avatar-dialog-title">
-          Remove profile picture?
+          {t('avatar.removeTitle')}
         </DialogTitle>
         <DialogContent sx={{ pt: 0, pb: 1 }}>
           <DialogContentText id="remove-avatar-dialog-description">
-            Your initials will be shown instead. You can add a new picture anytime.
+            {t('avatar.removeDescription')}
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2, pt: 0 }}>
           <Button onClick={handleRemoveCancel} color="inherit">
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button
             onClick={handleRemoveConfirm}
@@ -370,7 +372,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
             disabled={removing}
             autoFocus
           >
-            {removing ? 'Removing…' : 'Remove'}
+            {removing ? t('common.removingEllipsis') : t('avatar.remove')}
           </Button>
         </DialogActions>
       </Dialog>

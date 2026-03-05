@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import HeaderMenu from "./HeaderMenu";
 import { useAuth } from "../../contexts/AuthContext";
 
@@ -18,6 +19,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const isRTL = theme.direction === "rtl";
   const { isAuthenticated, logout } = useAuth();
@@ -49,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           {onMenuClick && (
             <IconButton
               color="inherit"
-              aria-label="Open menu"
+              aria-label={t('nav.openMenu')}
               onClick={onMenuClick}
               sx={{ minWidth: 44, minHeight: 44 }}
             >
@@ -57,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             </IconButton>
           )}
           <Typography variant="h5" component="div">
-            LOGO
+            {t('nav.logo')}
           </Typography>
         </Box>
 
@@ -72,7 +74,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 color="inherit"
                 className="text-white hover:bg-primary-light dark:hover:bg-primary-light-dark transition-colors"
               >
-                Login
+                {t('nav.login')}
               </Button>
               <Button
                 component={Link}
@@ -80,7 +82,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                 variant="contained"
                 className="text-primary-contrast hover:bg-primary-light dark:hover:bg-primary-light-dark transition-colors"
               >
-                Sign Up
+                {t('nav.signUp')}
               </Button>
             </>
           )}

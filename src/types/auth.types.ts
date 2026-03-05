@@ -8,6 +8,7 @@ export interface AuthUser {
   is_email_verified: boolean;
   avatar_url: string | null;
   pending_email?: string | null;
+  preferred_language: string;
   created_at: string;
 }
 
@@ -31,6 +32,7 @@ export interface RegisterPayload {
 export interface UpdateProfilePayload {
   display_name?: string;
   avatar_url?: string | null;
+  preferred_language?: string;
 }
 
 export interface ChangeEmailPayload {

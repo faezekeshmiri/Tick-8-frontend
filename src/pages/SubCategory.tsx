@@ -52,6 +52,7 @@ import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from 'react-i18next';
 import { ThemeModeContext } from "../contexts/ThemeContext";
 import { lightTheme, darkTheme } from "../assets/theme";
 import {
@@ -108,6 +109,7 @@ interface SideEditorProps {
 }
 
 const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }) => {
+  const { t } = useTranslation();
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -139,7 +141,7 @@ const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }
       const { url } = await uploadImage(file);
       onChange({ ...value, image_url: url });
     } catch (err) {
-      setUploadError(extractErrorMessage(err, "Upload failed."));
+      setUploadError(extractErrorMessage(err, t('subcategory.uploadFailed')));
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -166,7 +168,7 @@ const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }
               }
               label={
                 <Typography variant="caption" color="text.secondary">
-                  Rich text
+                  {t('subcategory.richText')}
                 </Typography>
               }
               labelPlacement="start"
@@ -180,12 +182,12 @@ const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }
             onChange={handleTypeChange}
           >
             <ToggleButton value="text" aria-label="text">
-              <Tooltip title="Plain / rich text">
+              <Tooltip title={t('subcategory.plainRichText')}>
                 <TextFieldsIcon fontSize="small" />
               </Tooltip>
             </ToggleButton>
             <ToggleButton value="image" aria-label="image">
-              <Tooltip title="Image">
+              <Tooltip title={t('subcategory.image')}>
                 <ImageIcon fontSize="small" />
               </Tooltip>
             </ToggleButton>
@@ -200,7 +202,7 @@ const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }
           <RichTextEditor
             value={value.text ?? ""}
             onChange={(html) => onChange({ ...value, text: html })}
-            placeholder="Enter text…"
+            placeholder={t('subcategory.enterText')}
             error={!!error}
             errorText={error}
           />
@@ -209,7 +211,7 @@ const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }
             fullWidth
             multiline
             minRows={3}
-            placeholder="Enter text…"
+            placeholder={t('subcategory.enterText')}
             value={value.text ?? ""}
             onChange={(e) => onChange({ ...value, text: e.target.value })}
             error={!!error}
@@ -236,14 +238,14 @@ const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }
                 sx={{ maxHeight: 100, maxWidth: "100%", objectFit: "contain", borderRadius: 1 }}
               />
               <Button size="small" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                Replace
+                {t('subcategory.replace')}
               </Button>
             </Box>
           ) : (
             <Box className="flex flex-col items-center gap-1">
               <ImageIcon color="disabled" />
               <Typography variant="caption" color="text.secondary">
-                JPG, PNG or WebP · max 5 MB
+                {t('subcategory.imageHint')}
               </Typography>
               <Button
                 size="small"
@@ -251,7 +253,7 @@ const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }
                 onClick={() => fileRef.current?.click()}
                 disabled={uploading}
               >
-                {uploading ? <CircularProgress size={16} /> : "Choose image"}
+                {uploading ? <CircularProgress size={16} /> : t('subcategory.chooseImage')}
               </Button>
             </Box>
           )}
@@ -299,6 +301,7 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
   onDelete,
   onMarksChange,
 }) => {
+  const { t } = useTranslation();
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null);
   const {
     attributes,
@@ -350,7 +353,7 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
             gap: 0.25,
           }}
         >
-          <Tooltip title="Hold and drag to reorder" placement="top">
+          <Tooltip title={t('subcategory.dragReorder')} placement="top">
             <Box
               {...listeners}
               {...attributes}
@@ -367,7 +370,7 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
               <DragIndicatorIcon sx={{ fontSize: 20 }} color="action" />
             </Box>
           </Tooltip>
-          <Tooltip title="Options" placement="top">
+          <Tooltip title={t('subcategory.options')} placement="top">
             <IconButton
               size="small"
               onClick={(e) => { e.stopPropagation(); setMenuAnchor(e.currentTarget); }}
@@ -378,7 +381,7 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
                 boxShadow: 1,
                 "&:hover": { bgcolor: "action.hover" },
               }}
-              aria-label="Card options"
+              aria-label={t('subcategory.cardOptions')}
             >
               <MoreVertIcon sx={{ fontSize: 20 }} />
             </IconButton>
@@ -395,14 +398,14 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
       >
         <MenuItem onClick={() => { setMenuAnchor(null); onEdit(); }}>
           <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          Edit
+          {t('common.edit')}
         </MenuItem>
         <MenuItem
           onClick={() => { setMenuAnchor(null); onDelete(); }}
           sx={{ color: "error.main" }}
         >
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
-          Delete
+          {t('common.delete')}
         </MenuItem>
       </Menu>
     </Box>
@@ -412,6 +415,7 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 const SubCategoryPage: React.FC = () => {
+  const { t } = useTranslation();
   const { isDarkMode } = useContext(ThemeModeContext);
   const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const navigate = useNavigate();
@@ -468,7 +472,7 @@ const SubCategoryPage: React.FC = () => {
   const total = flashcardsData?.total ?? 0;
   const pages = flashcardsData?.pages ?? 1;
   const cardProgressMap = flashcardsData?.cardProgressMap ?? new Map<number, { progress_id: number; marks: TickMark[] }>();
-  const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, "Failed to load flashcards.") : "";
+  const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, t('subcategory.loadError')) : "";
 
   const saveFlashcardMutation = useMutation({
     mutationFn: async (payload: { id?: number; front: FlashcardSide; back: FlashcardSide }) => {
@@ -570,9 +574,9 @@ const SubCategoryPage: React.FC = () => {
 
   const validateSide = (side: FlashcardSide, setErr: (m: string) => void): boolean => {
     if (side.type === 'text') {
-      if (!side.text?.trim()) { setErr("Text is required."); return false; }
+      if (!side.text?.trim()) { setErr(t('subcategory.textRequired')); return false; }
     } else {
-      if (!side.image_url) { setErr("Please upload an image."); return false; }
+      if (!side.image_url) { setErr(t('subcategory.imageRequired')); return false; }
     }
     setErr("");
     return true;
@@ -586,7 +590,7 @@ const SubCategoryPage: React.FC = () => {
     saveFlashcardMutation.mutate(
       { id: editingCard?.id, front: formFront, back: formBack },
       {
-        onError: (err) => setSaveError(extractErrorMessage(err, "Failed to save flashcard.")),
+        onError: (err) => setSaveError(extractErrorMessage(err, t('subcategory.saveError'))),
       }
     );
   };
@@ -720,8 +724,8 @@ const SubCategoryPage: React.FC = () => {
     }),
   );
 
-  const subTitle = subCategory?.title ?? "Subcategory";
-  const catTitle = category?.title ?? "Category";
+  const subTitle = subCategory?.title ?? t('subcategory.fallback');
+  const catTitle = category?.title ?? t('subcategory.categoryFallback');
 
   return (
     <Box className="w-full">
@@ -731,7 +735,7 @@ const SubCategoryPage: React.FC = () => {
           <Box>
             <Box className="flex items-center gap-2 flex-wrap">
               <IconButton
-                aria-label="back"
+                aria-label={t('common.back')}
                 onClick={() => navigate(`/categories/${catId}/subcategories`)}
               >
                 <ArrowBackIcon />
@@ -749,7 +753,7 @@ const SubCategoryPage: React.FC = () => {
               </Typography>
             )}
           </Box>
-          <Chip label={`${total} flashcards`} variant="outlined" className="font-semibold" color="secondary" />
+          <Chip label={t('subcategory.flashcardsCount', { count: total })} variant="outlined" className="font-semibold" color="secondary" />
         </Box>
 
         {progress != null && progress.total > 0 && (
@@ -758,29 +762,29 @@ const SubCategoryPage: React.FC = () => {
             sx={{ bgcolor: "background.paper" }}
           >
             <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-              Your progress
+              {t('subcategory.yourProgress')}
             </Typography>
             <Box className="flex flex-wrap items-center gap-4">
               <Typography variant="body2" color="text.secondary">
-                Pending: <strong>{progress.pending}</strong>
+                {t('subcategory.pending')} <strong>{progress.pending}</strong>
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Phase 1: <strong>{progress.phase1}</strong>
+                {t('subcategory.phase1')} <strong>{progress.phase1}</strong>
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Phase 2: <strong>{progress.phase2}</strong>
+                {t('subcategory.phase2')} <strong>{progress.phase2}</strong>
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Graduated (SRS): <strong>{progress.graduated}</strong>
+                {t('subcategory.graduatedSrs')} <strong>{progress.graduated}</strong>
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Long-term mastered: <strong>{progress.long_term_mastered}</strong>
+                {t('subcategory.longTermMastered')} <strong>{progress.long_term_mastered}</strong>
               </Typography>
               <Typography variant="body2" fontWeight={600}>
-                Mastery: {progress.mastery_percent}%
+                {t('subcategory.mastery')} {progress.mastery_percent}%
               </Typography>
               {progress.mastery_percent >= 100 && (
-                <Chip label="Mastered" color="success" size="small" />
+                <Chip label={t('subcategory.mastered')} color="success" size="small" />
               )}
             </Box>
           </Box>
@@ -792,16 +796,16 @@ const SubCategoryPage: React.FC = () => {
         <Box component="form" onSubmit={handleSearchSubmit} className="mb-5 flex gap-2">
           <TextField
             size="small"
-            placeholder="Search flashcards…"
+            placeholder={t('subcategory.searchPlaceholder')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon fontSize="small" /></InputAdornment> }}
             sx={{ flex: 1, maxWidth: 400 }}
           />
-          <Button type="submit" variant="outlined" size="small">Search</Button>
+          <Button type="submit" variant="outlined" size="small">{t('common.search')}</Button>
           {search && (
             <Button variant="text" size="small" onClick={() => { setSearchInput(""); setSearch(""); setPage(1); }}>
-              Clear
+              {t('common.clear')}
             </Button>
           )}
         </Box>
@@ -814,10 +818,10 @@ const SubCategoryPage: React.FC = () => {
         ) : flashcards.length === 0 ? (
           <Box className="rounded-2xl border border-dashed border-gray-200/70 py-12 text-center">
             <Typography variant="h6" className="font-semibold">
-              {search ? "No flashcards match your search." : "No flashcards yet"}
+              {search ? t('subcategory.noMatch') : t('subcategory.noneYet')}
             </Typography>
             <Typography variant="body2" color="text.secondary" className="mt-1">
-              {search ? "Try a different keyword." : "Create your first flashcard to start studying."}
+              {search ? t('subcategory.tryDifferent') : t('subcategory.createFirst')}
             </Typography>
           </Box>
         ) : (
@@ -868,7 +872,7 @@ const SubCategoryPage: React.FC = () => {
 
       {/* ── FAB ── */}
       <Fab
-        aria-label="add flashcard"
+        aria-label={t('subcategory.addFlashcard')}
         onClick={openCreateDialog}
         sx={{
           position: "fixed",
@@ -891,13 +895,13 @@ const SubCategoryPage: React.FC = () => {
       {/* ── Create / Edit dialog ── */}
       <Dialog open={isDialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
         <DialogTitle className="flex items-center justify-between py-3 px-3">
-          {editingCard ? "Edit flashcard" : "New flashcard"}
-          <IconButton aria-label="close" onClick={closeDialog} size="small"><CloseIcon /></IconButton>
+          {editingCard ? t('subcategory.editFlashcard') : t('subcategory.newFlashcard')}
+          <IconButton aria-label={t('common.close')} onClick={closeDialog} size="small"><CloseIcon /></IconButton>
         </DialogTitle>
         <DialogContent className="px-3 pb-2 flex flex-col gap-4" dividers>
           <SideEditor
             key={`front-${editingCard?.id ?? "new"}`}
-            label="Front"
+            label={t('subcategory.front')}
             value={formFront}
             onChange={(side) => { setFormFront(side); setFrontError(""); }}
             error={frontError}
@@ -905,7 +909,7 @@ const SubCategoryPage: React.FC = () => {
           <Divider />
           <SideEditor
             key={`back-${editingCard?.id ?? "new"}`}
-            label="Back"
+            label={t('subcategory.back')}
             value={formBack}
             onChange={(side) => { setFormBack(side); setBackError(""); }}
             error={backError}
@@ -913,23 +917,23 @@ const SubCategoryPage: React.FC = () => {
           {saveError && <Alert severity="error">{saveError}</Alert>}
         </DialogContent>
         <DialogActions className="px-3 pb-3 pt-2 gap-1">
-          <Button onClick={closeDialog} variant="text" disabled={saveFlashcardMutation.isPending}>Cancel</Button>
+          <Button onClick={closeDialog} variant="text" disabled={saveFlashcardMutation.isPending}>{t('common.cancel')}</Button>
           <Button onClick={handleSave} variant="contained" disabled={saveFlashcardMutation.isPending}>
-            {saveFlashcardMutation.isPending ? <CircularProgress size={18} /> : editingCard ? "Update" : "Create"}
+            {saveFlashcardMutation.isPending ? <CircularProgress size={18} /> : editingCard ? t('common.update') : t('common.create')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* ── Delete confirmation ── */}
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete flashcard?</DialogTitle>
+        <DialogTitle>{t('subcategory.deleteFlashcard')}</DialogTitle>
         <DialogContent>
-          <Typography variant="body2">This flashcard will be moved to trash. You can restore it within 30 days.</Typography>
+          <Typography variant="body2">{t('subcategory.deleteFlashcardWarning')}</Typography>
         </DialogContent>
         <DialogActions className="px-3 pb-3 gap-1">
-          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleteFlashcardMutation.isPending}>Cancel</Button>
+          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleteFlashcardMutation.isPending}>{t('common.cancel')}</Button>
           <Button onClick={handleDelete} color="error" variant="contained" disabled={deleteFlashcardMutation.isPending}>
-            {deleteFlashcardMutation.isPending ? <CircularProgress size={18} /> : "Delete"}
+            {deleteFlashcardMutation.isPending ? <CircularProgress size={18} /> : t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -941,11 +945,10 @@ const SubCategoryPage: React.FC = () => {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Not due for review today</DialogTitle>
+        <DialogTitle>{t('subcategory.offScheduleTitle')}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            This card is not scheduled for review today. Updating progress now may change your
-            Tick 8 schedule. Do you want to continue?
+            {t('subcategory.offScheduleMessage')}
           </Typography>
           <FormControlLabel
             control={
@@ -958,16 +961,16 @@ const SubCategoryPage: React.FC = () => {
               />
             }
             label={
-              <Typography variant="body2">Don&apos;t ask again (change in Profile → Study preferences)</Typography>
+              <Typography variant="body2">{t('subcategory.offScheduleRemember')}</Typography>
             }
           />
         </DialogContent>
         <DialogActions className="px-3 pb-3 gap-1">
           <Button onClick={handleOffScheduleCancel} variant="text">
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button variant="contained" onClick={handleOffScheduleConfirm}>
-            Continue
+            {t('common.continue')}
           </Button>
         </DialogActions>
       </Dialog>

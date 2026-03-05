@@ -4,19 +4,22 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import ShieldIcon from '@mui/icons-material/Shield';
-
-const adminNav = [
-  { label: 'Dashboard', path: '/admin', end: true, icon: <DashboardIcon /> },
-  { label: 'User Management', path: '/admin/users', end: false, icon: <ManageAccountsIcon /> },
-];
+import { useTranslation } from 'react-i18next';
 
 const AdminLayout: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const pathSegments = location.pathname.replace(/^\/admin\/?/, '').split('/').filter(Boolean);
+
+  const adminNav = [
+    { label: t('admin.dashboard'), path: '/admin', end: true, icon: <DashboardIcon /> },
+    { label: t('admin.userManagement'), path: '/admin/users', end: false, icon: <ManageAccountsIcon /> },
+  ];
+
   const breadcrumbLabels: Record<string, string> = {
-    '': 'Dashboard',
-    users: 'User Management',
-    content: 'Manage content',
+    '': t('admin.dashboard'),
+    users: t('admin.userManagement'),
+    content: t('admin.manageContent'),
   };
   const isUserIdSegment = (seg: string) => /^\d+$/.test(seg);
 
@@ -27,17 +30,17 @@ const AdminLayout: React.FC = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
         <ShieldIcon color="secondary" sx={{ fontSize: 32 }} />
         <Typography variant="h4" fontWeight="bold">
-          Admin Panel
+          {t('admin.panelTitle')}
         </Typography>
       </Box>
 
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
         <Link component={NavLink} to="/admin" color="inherit" underline="hover">
-          Admin
+          {t('admin.breadcrumbAdmin')}
         </Link>
         {pathSegments.map((seg, i) => (
           <Typography key={seg} color="text.primary" variant="body2">
-            {breadcrumbLabels[seg] ?? (isUserIdSegment(seg) ? 'User details' : seg)}
+            {breadcrumbLabels[seg] ?? (isUserIdSegment(seg) ? t('admin.userDetails') : seg)}
           </Typography>
         ))}
       </Breadcrumbs>

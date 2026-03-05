@@ -20,12 +20,14 @@ import type {
   StudyCardResponse,
   TodaysQueueResponse,
 } from "../types/study.types";
+import { useTranslation } from 'react-i18next';
 import { extractErrorMessage } from "../utils/error";
 import Flashcard from "../components/Flashcard";
 
 type TickResult = "remembered" | "forgot";
 
 const StudySession: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [queueData, setQueueData] = useState<TodaysQueueResponse | null>(null);
   const [queue, setQueue] = useState<QueueItem[]>([]);
@@ -56,7 +58,7 @@ const StudySession: React.FC = () => {
       setRevealed(false);
       setSessionDone(data.queue.length === 0);
     } catch (err) {
-      setError(extractErrorMessage(err, "Failed to load queue."));
+      setError(extractErrorMessage(err, t('study.loadQueueError')));
     } finally {
       setLoading(false);
     }
@@ -78,7 +80,7 @@ const StudySession: React.FC = () => {
       setCard(c);
       setRevealed(false);
     } catch (err) {
-      setError(extractErrorMessage(err, "Failed to load card."));
+      setError(extractErrorMessage(err, t('study.loadCardError')));
     }
   }, [currentItem]);
 
@@ -108,7 +110,7 @@ const StudySession: React.FC = () => {
       }
       setIndex((i) => i + 1);
     } catch (err) {
-      setError(extractErrorMessage(err, "Failed to record response."));
+      setError(extractErrorMessage(err, t('study.recordError')));
     } finally {
       setSending(false);
     }
@@ -146,11 +148,10 @@ const StudySession: React.FC = () => {
           </Alert>
         )}
         <Typography color="text.secondary" sx={{ mb: 2 }}>
-          Could not load your study queue. Please make sure the database migrations have been applied
-          and try again.
+          {t('study.queueError')}
         </Typography>
         <Button variant="contained" onClick={() => navigate("/")}>
-          Back to Home
+          {t('study.backToHome')}
         </Button>
       </Box>
     );
@@ -160,10 +161,10 @@ const StudySession: React.FC = () => {
     return (
       <Box sx={{ maxWidth: 560, mx: "auto", p: 2 }}>
         <Typography variant="h6" gutterBottom>
-          You&apos;re all caught up!
+          {t('study.allCaughtUp')}
         </Typography>
         <Button variant="contained" onClick={() => navigate("/")}>
-          Back to Home
+          {t('study.backToHome')}
         </Button>
       </Box>
     );
@@ -173,14 +174,13 @@ const StudySession: React.FC = () => {
     return (
       <Box sx={{ maxWidth: 560, mx: "auto", p: 2 }}>
         <Typography variant="h6" gutterBottom>
-          Session complete
+          {t('study.sessionComplete')}
         </Typography>
         <Typography color="text.secondary" sx={{ mb: 2 }}>
-          You reviewed {reviewedCount} card{reviewedCount !== 1 ? "s" : ""}. Remembered:{" "}
-          {remembered} · Forgot: {forgot}
+          {t('study.reviewedCards', { count: reviewedCount, remembered, forgot })}
         </Typography>
         <Button variant="contained" onClick={() => navigate("/")}>
-          Back to Home
+          {t('study.backToHome')}
         </Button>
       </Box>
     );
@@ -188,12 +188,12 @@ const StudySession: React.FC = () => {
 
   const catchUpLabel =
     currentItem && currentItem.catch_up_total > 1
-      ? `Catch-up · Review ${currentItem.catch_up_n} of ${currentItem.catch_up_total}`
+      ? t('study.catchUpLabel', { n: currentItem.catch_up_n, total: currentItem.catch_up_total })
       : null;
   const phaseLabel =
     card && card.phase >= 1
-      ? `Phase ${card.phase} · Review ${card.tick_in_phase} of 8`
-      : "SRS review";
+      ? t('study.phaseLabel', { phase: card.phase, tick: card.tick_in_phase })
+      : t('study.srsReview');
 
   return (
     <Box sx={{ maxWidth: 560, mx: "auto", px: 2, py: 3 }}>
@@ -203,7 +203,7 @@ const StudySession: React.FC = () => {
         sx={{ height: 6, borderRadius: 1, mb: 2 }}
       />
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        {index + 1} of {total}
+        {t('study.ofTotal', { current: index + 1, total })}
         {catchUpLabel && ` · ${catchUpLabel}`}
       </Typography>
 
@@ -241,7 +241,7 @@ const StudySession: React.FC = () => {
               onClick={handleReveal}
               sx={{ mt: 2 }}
             >
-              Reveal {card.hidden_side_label}
+              {t('study.reveal', { side: card.hidden_side_label })}
             </Button>
           ) : (
             <Box
@@ -258,20 +258,20 @@ const StudySession: React.FC = () => {
                 color="error"
                 startIcon={<CloseIcon />}
                 onClick={() => handleResponse("forgot")}
-                disabled={recordTickMutation.isPending}
+                disabled={sending}
                 sx={{ flex: 1 }}
               >
-                Forgot
+                {t('study.forgot')}
               </Button>
               <Button
                 variant="contained"
                 color="success"
                 startIcon={<CheckCircleIcon />}
                 onClick={() => handleResponse("remembered")}
-                disabled={recordTickMutation.isPending}
+                disabled={sending}
                 sx={{ flex: 1 }}
               >
-                Remembered
+                {t('study.remembered')}
               </Button>
             </Box>
           )}
@@ -279,17 +279,16 @@ const StudySession: React.FC = () => {
       )}
 
       <Dialog open={regressionOffer} onClose={closeRegressionOffer}>
-        <DialogTitle>Phase 1 revisit?</DialogTitle>
+        <DialogTitle>{t('study.regressionTitle')}</DialogTitle>
         <DialogContent>
           <Typography>
-            You&apos;ve forgotten this card 3 times in a row. Would you like to briefly revisit
-            the front-to-back direction before continuing?
+            {t('study.regressionMessage')}
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeRegressionOffer}>No, continue</Button>
+          <Button onClick={closeRegressionOffer}>{t('study.noContinue')}</Button>
           <Button variant="contained" onClick={closeRegressionOffer}>
-            Yes, revisit
+            {t('study.yesRevisit')}
           </Button>
         </DialogActions>
       </Dialog>

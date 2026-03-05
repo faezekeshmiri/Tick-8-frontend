@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Alert,
   Box,
@@ -43,6 +44,7 @@ import { extractErrorMessage } from "../utils/error";
 const PER_PAGE = 12;
 
 const CategoryPage: React.FC = () => {
+  const { t } = useTranslation();
   const { isDarkMode } = useThemeMode();
   const palette = (isDarkMode ? darkTheme : lightTheme).palette;
   const navigate = useNavigate();
@@ -82,7 +84,7 @@ const CategoryPage: React.FC = () => {
   const subCategories = subData?.items ?? [];
   const total = subData?.total ?? 0;
   const pages = subData?.pages ?? 1;
-  const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, "Failed to load subcategories.") : "";
+  const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, t('category.loadError')) : "";
   const saveMutation = useMutation({
     mutationFn: async (payload: { id?: number; title: string; description: string | null }) => {
       if (payload.id) return updateSubCategory(payload.id, { title: payload.title, description: payload.description });
@@ -137,7 +139,7 @@ const CategoryPage: React.FC = () => {
 
   const handleSave = async () => {
     const trimmedTitle = formTitle.trim();
-    if (!trimmedTitle) { setFormError("Title is required."); return; }
+    if (!trimmedTitle) { setFormError(t('common.titleRequired')); return; }
     setFormError("");
     saveMutation.mutate(
       {
@@ -147,7 +149,7 @@ const CategoryPage: React.FC = () => {
       },
       {
         onError: (err) => {
-          setFormError(extractErrorMessage(err, "Failed to save subcategory."));
+          setFormError(extractErrorMessage(err, t('category.saveError')));
         },
       }
     );
@@ -159,7 +161,7 @@ const CategoryPage: React.FC = () => {
     if (subCategories.length === 1 && page > 1) setPage((p) => p - 1);
   };
 
-  const categoryTitle = category?.title ?? "Category";
+  const categoryTitle = category?.title ?? t('category.fallback');
 
   return (
     <Box className="w-full">
@@ -168,7 +170,7 @@ const CategoryPage: React.FC = () => {
         <Box className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Box>
             <Box className="flex items-center gap-2">
-              <IconButton aria-label="back" onClick={() => navigate("/categories")}>
+              <IconButton aria-label={t('common.back')} onClick={() => navigate("/categories")}>
                 <ArrowBackIcon />
               </IconButton>
               <Typography variant="h4" className="font-bold">
@@ -182,7 +184,7 @@ const CategoryPage: React.FC = () => {
             )}
           </Box>
           <Chip
-            label={`${total} subcategories`}
+            label={t('category.subcategoriesCount', { count: total })}
             color="secondary"
             variant="outlined"
             className="font-semibold"
@@ -195,7 +197,7 @@ const CategoryPage: React.FC = () => {
         <Box component="form" onSubmit={handleSearchSubmit} className="mb-5 flex gap-2">
           <TextField
             size="small"
-            placeholder="Search subcategories…"
+            placeholder={t('category.searchPlaceholder')}
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             InputProps={{
@@ -207,10 +209,10 @@ const CategoryPage: React.FC = () => {
             }}
             sx={{ flex: 1, maxWidth: 400 }}
           />
-          <Button type="submit" variant="outlined" size="small">Search</Button>
+          <Button type="submit" variant="outlined" size="small">{t('common.search')}</Button>
           {search && (
             <Button variant="text" size="small" onClick={() => { setSearchInput(""); setSearch(""); setPage(1); }}>
-              Clear
+              {t('common.clear')}
             </Button>
           )}
         </Box>
@@ -224,10 +226,10 @@ const CategoryPage: React.FC = () => {
           <Card className="border border-dashed border-gray-200/70">
             <CardContent className="py-12 text-center">
               <Typography variant="h6" className="font-semibold">
-                {search ? "No subcategories match your search." : "No subcategories yet"}
+                {search ? t('category.noMatch') : t('category.noneYet')}
               </Typography>
               <Typography variant="body2" color="text.secondary" className="mt-1">
-                {search ? "Try a different keyword." : "Add one to start organizing this category."}
+                {search ? t('category.tryDifferent') : t('category.addHint')}
               </Typography>
             </CardContent>
           </Card>
@@ -255,7 +257,7 @@ const CategoryPage: React.FC = () => {
 
       {/* ── FAB ── */}
       <Fab
-        aria-label="add subcategory"
+        aria-label={t('category.addSubcategory')}
         onClick={openCreateDialog}
         sx={{
           position: "fixed",
@@ -278,12 +280,12 @@ const CategoryPage: React.FC = () => {
       {/* ── Create / Edit dialog ── */}
       <Dialog open={isDialogOpen} onClose={closeDialog} fullWidth maxWidth="xs">
         <DialogTitle className="flex items-center justify-between py-3 px-3">
-          {editingSub ? "Edit subcategory" : "New subcategory"}
-          <IconButton aria-label="close" onClick={closeDialog} size="small"><CloseIcon /></IconButton>
+          {editingSub ? t('category.editSubcategory') : t('category.newSubcategory')}
+          <IconButton aria-label={t('common.close')} onClick={closeDialog} size="small"><CloseIcon /></IconButton>
         </DialogTitle>
         <DialogContent className="pb-0 pt-3 px-3" sx={{ overflow: "visible" }}>
           <TextField
-            autoFocus fullWidth label="Title"
+            autoFocus fullWidth label={t('common.title')}
             value={formTitle}
             onChange={(e) => { setFormTitle(e.target.value); setFormError(""); }}
             error={!!formError && !formTitle.trim()}
@@ -291,7 +293,7 @@ const CategoryPage: React.FC = () => {
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleSave(); } }}
           />
           <TextField
-            fullWidth label="Description (optional)"
+            fullWidth label={t('common.descriptionOptional')}
             value={formDescription}
             onChange={(e) => setFormDescription(e.target.value)}
             multiline minRows={3} className="mt-2 mb-1"
@@ -301,25 +303,23 @@ const CategoryPage: React.FC = () => {
           )}
         </DialogContent>
         <DialogActions className="px-3 pb-3 pt-2 gap-1">
-          <Button onClick={closeDialog} variant="text" disabled={saveMutation.isPending}>Cancel</Button>
+          <Button onClick={closeDialog} variant="text" disabled={saveMutation.isPending}>{t('common.cancel')}</Button>
           <Button onClick={handleSave} variant="contained" disabled={saveMutation.isPending}>
-            {saveMutation.isPending ? <CircularProgress size={18} /> : editingSub ? "Update" : "Create"}
+            {saveMutation.isPending ? <CircularProgress size={18} /> : editingSub ? t('common.update') : t('common.create')}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* ── Delete confirmation ── */}
       <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>Delete subcategory?</DialogTitle>
+        <DialogTitle>{t('category.deleteSubcategory')}</DialogTitle>
         <DialogContent>
-          <Typography variant="body2">
-            Deleting <strong>"{deleteTarget?.title}"</strong> will also delete all flashcards inside it.
-          </Typography>
+          <Typography variant="body2" dangerouslySetInnerHTML={{ __html: t('category.deleteWarning', { title: deleteTarget?.title }) }} />
         </DialogContent>
         <DialogActions className="px-3 pb-3 gap-1">
-          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleteMutation.isPending}>Cancel</Button>
+          <Button onClick={() => setDeleteTarget(null)} variant="text" disabled={deleteMutation.isPending}>{t('common.cancel')}</Button>
           <Button onClick={handleDelete} color="error" variant="contained" disabled={deleteMutation.isPending}>
-            {deleteMutation.isPending ? <CircularProgress size={18} /> : "Delete"}
+            {deleteMutation.isPending ? <CircularProgress size={18} /> : t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>

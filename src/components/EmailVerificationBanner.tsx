@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Alert, AlertTitle, Box, Button, Snackbar } from '@mui/material';
 import { MarkEmailRead } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { resendVerification } from '../api/auth';
 
 const EmailVerificationBanner: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [dismissed, setDismissed] = useState(false);
   const [sending, setSending] = useState(false);
@@ -18,7 +20,7 @@ const EmailVerificationBanner: React.FC = () => {
       const msg = await resendVerification();
       setToast(msg);
     } catch (err: any) {
-      setToast(err?.response?.data?.detail ?? 'Failed to resend. Please try again.');
+      setToast(err?.response?.data?.detail ?? t('emailBanner.resendFailed'));
     } finally {
       setSending(false);
     }
@@ -39,17 +41,16 @@ const EmailVerificationBanner: React.FC = () => {
               onClick={handleResend}
               disabled={sending}
             >
-              {sending ? 'Sending…' : 'Resend email'}
+              {sending ? t('common.sendingEllipsis') : t('emailBanner.resendEmail')}
             </Button>
             <Button size="small" color="warning" onClick={() => setDismissed(true)}>
-              Dismiss
+              {t('emailBanner.dismiss')}
             </Button>
           </Box>
         }
       >
-        <AlertTitle>Verify your email address</AlertTitle>
-        Please check your inbox and click the verification link. Some features require a verified
-        email.
+        <AlertTitle>{t('emailBanner.title')}</AlertTitle>
+        {t('emailBanner.message')}
       </Alert>
 
       <Snackbar

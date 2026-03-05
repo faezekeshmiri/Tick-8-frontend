@@ -1,20 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import AppRouter from './routes/AppRouter';
-import MainLayout from './layouts/MainLayout';
+import AppContent from './AppContent';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeModeContext } from './contexts/ThemeContext';
-import EmailVerificationBanner from './components/EmailVerificationBanner';
-import { lightTheme, darkTheme } from './assets/theme';
-
-const AUTH_PATHS = [
-  '/login',
-  '/signup',
-  '/forgot-password',
-  '/reset-password',
-  '/verify-email',
-];
 
 const THEME_STORAGE_KEY = 'tick8-theme';
 
@@ -46,36 +34,12 @@ const App: React.FC = () => {
       return next;
     });
   };
-  const location = useLocation();
-
-  const isAuthPage = AUTH_PATHS.some((p) => location.pathname.startsWith(p));
-
-  useEffect(() => {
-    document.body.classList.toggle('dark', isDarkMode);
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', isDarkMode ? '#012A4A' : '#00B4D8');
-  }, [isDarkMode]);
-
-  const theme = useMemo(
-    () => (isDarkMode ? darkTheme : lightTheme),
-    [isDarkMode]
-  );
 
   return (
     <ThemeModeContext.Provider value={{ isDarkMode, toggleTheme }}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <AuthProvider>
-          {isAuthPage ? (
-            <AppRouter />
-          ) : (
-            <MainLayout direction="ltr">
-              <EmailVerificationBanner />
-              <AppRouter />
-            </MainLayout>
-          )}
-        </AuthProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeModeContext.Provider>
   );
 };
