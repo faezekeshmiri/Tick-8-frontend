@@ -5,6 +5,11 @@ import {
   Box,
   Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Fade,
   IconButton,
   Modal,
@@ -15,6 +20,7 @@ import {
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { uploadImage, resolveImageUrl } from '../api/upload';
 
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -24,6 +30,7 @@ interface AvatarUploadProps {
   currentUrl: string | null;
   initials: string;
   onUploaded: (url: string) => void;
+  onRemoved?: () => void;
   onError: (message: string) => void;
   size?: number;
 }
@@ -32,6 +39,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   currentUrl,
   initials,
   onUploaded,
+  onRemoved,
   onError,
   size = 120,
 }) => {
@@ -41,6 +49,8 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const [dragOver, setDragOver] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   const resolvedUrl = previewUrl ?? (currentUrl ? resolveImageUrl(currentUrl) : null);
 
@@ -101,6 +111,31 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     },
     [processFile],
   );
+
+  const handleRemoveClick = useCallback(() => {
+    setRemoveConfirmOpen(true);
+  }, []);
+
+  const handleRemoveConfirm = useCallback(async () => {
+    if (!onRemoved) return;
+    setRemoving(true);
+    try {
+      onRemoved();
+      setRemoveConfirmOpen(false);
+      setModalOpen(false);
+      setPreviewUrl(null);
+    } catch {
+      onError('Failed to remove profile picture.');
+    } finally {
+      setRemoving(false);
+    }
+  }, [onRemoved, onError]);
+
+  const handleRemoveCancel = useCallback(() => {
+    setRemoveConfirmOpen(false);
+  }, []);
+
+  const hasAvatar = !!currentUrl;
 
   const cameraBadgeSize = Math.round(size * 0.3);
 
@@ -282,10 +317,63 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
               >
                 Choose from Computer
               </Button>
+
+              {/* Remove photo — only when there is an avatar and onRemoved is provided */}
+              {hasAvatar && onRemoved && (
+                <>
+                  <Box sx={{ flex: 1, height: '1px', my: 2.5, bgcolor: 'divider' }} />
+                  <Button
+                    variant="text"
+                    fullWidth
+                    size="medium"
+                    onClick={handleRemoveClick}
+                    startIcon={<DeleteOutlineIcon />}
+                    sx={{
+                      textTransform: 'none',
+                      color: 'error.main',
+                      '&:hover': { bgcolor: alpha(theme.palette.error.main, 0.08) },
+                    }}
+                  >
+                    Remove photo
+                  </Button>
+                </>
+              )}
             </Box>
           </Box>
         </Fade>
       </Modal>
+
+      {/* Remove confirmation dialog */}
+      <Dialog
+        open={removeConfirmOpen}
+        onClose={handleRemoveCancel}
+        aria-labelledby="remove-avatar-dialog-title"
+        aria-describedby="remove-avatar-dialog-description"
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle id="remove-avatar-dialog-title">
+          Remove profile picture?
+        </DialogTitle>
+        <DialogContent sx={{ pt: 0, pb: 1 }}>
+          <DialogContentText id="remove-avatar-dialog-description">
+            Your initials will be shown instead. You can add a new picture anytime.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, pt: 0 }}>
+          <Button onClick={handleRemoveCancel} color="inherit">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleRemoveConfirm}
+            color="error"
+            variant="contained"
+            disabled={removing}
+            autoFocus
+          >
+            {removing ? 'Removing…' : 'Remove'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <input
         ref={inputRef}

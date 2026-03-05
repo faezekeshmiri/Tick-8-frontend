@@ -106,6 +106,17 @@ const Profile: React.FC = () => {
     }
   };
 
+  const onAvatarRemoved = async () => {
+    try {
+      const updated = await authApi.updateProfile({ avatar_url: '' });
+      updateUser(updated);
+      setToast({ message: 'Profile picture removed.', severity: 'success' });
+    } catch (err) {
+      setToast({ message: extractErrorMessage(err, 'Failed to remove profile picture.'), severity: 'error' });
+      throw err;
+    }
+  };
+
   const onChangeEmail = async (data: EmailForm) => {
     try {
       const msg = await authApi.changeEmail({
@@ -165,6 +176,7 @@ const Profile: React.FC = () => {
               currentUrl={user.avatar_url}
               initials={initials}
               onUploaded={onAvatarUploaded}
+              onRemoved={onAvatarRemoved}
               onError={(msg) => setToast({ message: msg, severity: 'error' })}
             />
 

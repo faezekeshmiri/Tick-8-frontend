@@ -30,7 +30,7 @@ export interface RegisterPayload {
 
 export interface UpdateProfilePayload {
   display_name?: string;
-  avatar_url?: string;
+  avatar_url?: string | null;
 }
 
 export interface ChangeEmailPayload {
