@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo } from 'react';
 import { CssBaseline, ThemeProvider } from '@mui/material';
+import { CacheProvider } from '@emotion/react';
+import createCache from '@emotion/cache';
+import rtlPlugin from 'stylis-plugin-rtl';
+import { prefixer } from 'stylis';
 import { useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import AppRouter from './routes/AppRouter';
@@ -8,6 +12,9 @@ import EmailVerificationBanner from './components/EmailVerificationBanner';
 import { useAuth } from './contexts/AuthContext';
 import { useThemeMode } from './contexts/ThemeContext';
 import { lightTheme, darkTheme, createAppTheme, getDirection } from './assets/theme';
+
+const ltrCache = createCache({ key: 'mui' });
+const rtlCache = createCache({ key: 'muirtl', stylisPlugins: [prefixer, rtlPlugin] });
 
 const AUTH_PATHS = [
   '/login',
@@ -51,17 +58,19 @@ const AppContent: React.FC = () => {
   }, [direction, locale, i18n]);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      {isAuthPage ? (
-        <AppRouter />
-      ) : (
-        <MainLayout>
-          <EmailVerificationBanner />
+    <CacheProvider value={direction === 'rtl' ? rtlCache : ltrCache}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {isAuthPage ? (
           <AppRouter />
-        </MainLayout>
-      )}
-    </ThemeProvider>
+        ) : (
+          <MainLayout>
+            <EmailVerificationBanner />
+            <AppRouter />
+          </MainLayout>
+        )}
+      </ThemeProvider>
+    </CacheProvider>
   );
 };
 

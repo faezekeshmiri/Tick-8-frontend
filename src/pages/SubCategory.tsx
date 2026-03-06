@@ -33,7 +33,6 @@ import {
   MenuItem,
   Pagination,
   Switch,
-  useTheme,
   TextField,
   ToggleButton,
   ToggleButtonGroup,
@@ -346,7 +345,7 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
           sx={{
             position: "absolute",
             top: 8,
-            left: 8,
+            insetInlineStart: 8,
             zIndex: 2,
             display: "flex",
             alignItems: "center",
@@ -397,14 +396,14 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
         transformOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <MenuItem onClick={() => { setMenuAnchor(null); onEdit(); }}>
-          <EditIcon fontSize="small" sx={{ mr: 1 }} />
+          <EditIcon fontSize="small" sx={{ marginInlineEnd: 1 }} />
           {t('common.edit')}
         </MenuItem>
         <MenuItem
           onClick={() => { setMenuAnchor(null); onDelete(); }}
           sx={{ color: "error.main" }}
         >
-          <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
+          <DeleteIcon fontSize="small" sx={{ marginInlineEnd: 1 }} />
           {t('common.delete')}
         </MenuItem>
       </Menu>
@@ -748,7 +747,7 @@ const SubCategoryPage: React.FC = () => {
               </Typography>
             </Box>
             {subCategory?.description && (
-              <Typography variant="body2" color="text.secondary" className="mt-1 ml-12">
+              <Typography variant="body2" color="text.secondary" className="mt-1 ms-12">
                 {subCategory.description}
               </Typography>
             )}
@@ -790,7 +789,7 @@ const SubCategoryPage: React.FC = () => {
           </Box>
         )}
 
-        <Divider className="my-4" />
+        <Divider className="!my-6" />
 
         {/* ── Search ── */}
         <Box component="form" onSubmit={handleSearchSubmit} className="mb-5 flex gap-2">
@@ -876,7 +875,7 @@ const SubCategoryPage: React.FC = () => {
         onClick={openCreateDialog}
         sx={{
           position: "fixed",
-          right: { xs: 16, sm: 24 },
+          insetInlineEnd: { xs: 16, sm: 24 },
           bottom: { xs: 16, sm: 24 },
           backgroundColor: palette.primary.main,
           color: palette.primary.contrastText,
@@ -906,7 +905,7 @@ const SubCategoryPage: React.FC = () => {
             onChange={(side) => { setFormFront(side); setFrontError(""); }}
             error={frontError}
           />
-          <Divider />
+          <Divider className="!my-4" />
           <SideEditor
             key={`back-${editingCard?.id ?? "new"}`}
             label={t('subcategory.back')}

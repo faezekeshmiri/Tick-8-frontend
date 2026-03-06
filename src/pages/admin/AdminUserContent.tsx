@@ -424,7 +424,7 @@ const AdminUserContent: React.FC = () => {
                   </Button>
                 </Box>
                 <Collapse in={expanded}>
-                  <Box sx={{ pl: 4, pr: 2, pb: 2 }}>
+                  <Box sx={{ paddingInlineStart: 4, paddingInlineEnd: 2, pb: 2 }}>
                     {subs.length === 0 && !expanded ? null : subs.length === 0 ? (
                       <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
                         No subcategories. Add one above.
@@ -482,7 +482,7 @@ const AdminUserContent: React.FC = () => {
                               </Button>
                             </Box>
                             <Collapse in={subExpanded}>
-                              <Box sx={{ pl: 4, pr: 2, pb: 2 }}>
+                              <Box sx={{ paddingInlineStart: 4, paddingInlineEnd: 2, pb: 2 }}>
                                 {cards.length === 0 ? (
                                   <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
                                     No flashcards. Add one above.

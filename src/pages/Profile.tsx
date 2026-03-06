@@ -182,7 +182,7 @@ const Profile: React.FC = () => {
               onError={(msg) => setToast({ message: msg, severity: 'error' })}
             />
 
-            <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
+            <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'start' } }}>
               <Box
                 sx={{
                   display: 'flex',

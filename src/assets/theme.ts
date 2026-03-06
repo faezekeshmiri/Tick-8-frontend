@@ -29,6 +29,9 @@ export function createAppTheme(base: Theme, locale: string): Theme {
     typography: fontFamily
       ? { ...base.typography, fontFamily }
       : base.typography,
+    components: {
+      ...base.components,
+    },
   });
 }
 
@@ -55,34 +58,18 @@ const alertSnackbarOverrides = {
       standardError: ({ theme }) => ({
         borderLeft: `4px solid ${theme.palette.error.main}`,
         borderRight: 'none',
-        ...(theme.direction === 'rtl' && {
-          borderLeft: 'none',
-          borderRight: `4px solid ${theme.palette.error.main}`,
-        }),
       }),
       standardWarning: ({ theme }) => ({
         borderLeft: `4px solid ${theme.palette.warning?.main ?? '#ed6c02'}`,
         borderRight: 'none',
-        ...(theme.direction === 'rtl' && {
-          borderLeft: 'none',
-          borderRight: `4px solid ${theme.palette.warning?.main ?? '#ed6c02'}`,
-        }),
       }),
       standardInfo: ({ theme }) => ({
         borderLeft: `4px solid ${theme.palette.info?.main ?? theme.palette.primary.main}`,
         borderRight: 'none',
-        ...(theme.direction === 'rtl' && {
-          borderLeft: 'none',
-          borderRight: `4px solid ${theme.palette.info?.main ?? theme.palette.primary.main}`,
-        }),
       }),
       standardSuccess: ({ theme }) => ({
         borderLeft: `4px solid ${theme.palette.success?.main ?? '#2e7d32'}`,
         borderRight: 'none',
-        ...(theme.direction === 'rtl' && {
-          borderLeft: 'none',
-          borderRight: `4px solid ${theme.palette.success?.main ?? '#2e7d32'}`,
-        }),
       }),
     },
   },

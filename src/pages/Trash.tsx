@@ -75,7 +75,7 @@ const TrashItemRow: React.FC<TrashItemRowProps> = ({
             {subtitle}
           </Typography>
         )}
-        <Typography variant="caption" color="text.secondary" className="ml-2">
+        <Typography variant="caption" color="text.secondary" className="ms-2">
           {`· ${t('trash.deleted', { date: formatDate(deletedAt) })}`}
         </Typography>
       </Box>
@@ -118,7 +118,7 @@ const Section: React.FC<SectionProps> = ({ title, icon, count, children }) => (
         </Typography>
         <Chip label={count} size="small" color="secondary" variant="outlined" />
       </Box>
-      <Divider className="mb-2" />
+      <Divider className="!mb-4" />
       {children}
     </CardContent>
   </Card>
@@ -185,7 +185,7 @@ const Trash: React.FC = () => {
           )}
         </Box>
 
-        <Divider className="my-4" />
+        <Divider className="!my-6" />
 
         {restoreError && (
           <Alert severity="error" className="mb-4" onClose={() => setRestoreError("")}>
@@ -223,7 +223,7 @@ const Trash: React.FC = () => {
                       onRestore={() => handleRestore("category", item.id)}
                       restoring={restoringKey === `category-${item.id}`}
                     />
-                    <Divider />
+                    <Divider className="!my-3" />
                   </React.Fragment>
                 ))}
               </Section>
@@ -242,7 +242,7 @@ const Trash: React.FC = () => {
                       onRestore={() => handleRestore("subcategory", item.id)}
                       restoring={restoringKey === `subcategory-${item.id}`}
                     />
-                    <Divider />
+                    <Divider className="!my-3" />
                   </React.Fragment>
                 ))}
               </Section>
@@ -260,7 +260,7 @@ const Trash: React.FC = () => {
                       onRestore={() => handleRestore("flashcard", item.id)}
                       restoring={restoringKey === `flashcard-${item.id}`}
                     />
-                    <Divider />
+                    <Divider className="!my-3" />
                   </React.Fragment>
                 ))}
               </Section>

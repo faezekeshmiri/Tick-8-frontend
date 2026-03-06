@@ -6,7 +6,6 @@ import {
   Button,
   Box,
   IconButton,
-  useTheme,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { Link } from "react-router-dom";
@@ -20,8 +19,6 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const { t } = useTranslation();
-  const theme = useTheme();
-  const isRTL = theme.direction === "rtl";
   const { isAuthenticated, logout } = useAuth();
   const handleLogout = () => {
     logout().catch(console.error);
@@ -41,7 +38,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         sx={{
           minHeight: { xs: 56, sm: 64, md: 72 },
           display: "flex",
-          flexDirection: isRTL ? "row-reverse" : "row",
           justifyContent: "space-between",
           alignItems: "center",
           px: 2,

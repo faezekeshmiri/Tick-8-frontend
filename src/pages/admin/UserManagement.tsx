@@ -131,23 +131,25 @@ const UserManagement: React.FC = () => {
         {t('admin.matchingFilters', { count: total })}
       </Typography>
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, alignItems: 'center' }}>
-        <Box component="form" onSubmit={handleSearchSubmit} sx={{ minWidth: 240, maxWidth: 320 }}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder={t('admin.searchPlaceholder')}
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
+      <Box
+        component="form"
+        onSubmit={handleSearchSubmit}
+        sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, alignItems: 'center' }}
+      >
+        <TextField
+          size="small"
+          placeholder={t('admin.searchPlaceholder')}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search fontSize="small" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ minWidth: 220, maxWidth: 300 }}
+        />
         <FormControl size="small" sx={{ minWidth: 120 }}>
           <InputLabel>{t('admin.role')}</InputLabel>
           <Select
@@ -172,6 +174,24 @@ const UserManagement: React.FC = () => {
             <MenuItem value="suspended">{t('admin.suspendedStatus')}</MenuItem>
           </Select>
         </FormControl>
+        <Button type="submit" variant="outlined" sx={{ height: 40 }}>
+          {t('common.search')}
+        </Button>
+        {(search || roleFilter !== 'all' || statusFilter !== 'all') && (
+          <Button
+            variant="text"
+            sx={{ height: 40 }}
+            onClick={() => {
+              setSearchInput('');
+              setSearch('');
+              setRoleFilter('all');
+              setStatusFilter('all');
+              setPage(1);
+            }}
+          >
+            {t('common.clear')}
+          </Button>
+        )}
       </Box>
 
       {loading ? (

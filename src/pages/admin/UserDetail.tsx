@@ -271,7 +271,7 @@ const UserDetail: React.FC = () => {
                     border: 'none',
                     background: expanded ? 'action.hover' : 'transparent',
                     cursor: 'pointer',
-                    textAlign: 'left',
+                    textAlign: 'start',
                     '&:hover': { bgcolor: 'action.hover' },
                   }}
                 >

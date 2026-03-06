@@ -20,7 +20,6 @@ import {
   TextField,
   Typography,
   Alert,
-  useTheme,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
@@ -190,7 +189,7 @@ const Categories: React.FC = () => {
           />
         </Box>
 
-        <Divider className="my-4" />
+        <Divider className="!my-6" />
 
         {/* ── Search bar ── */}
         <Box component="form" onSubmit={handleSearchSubmit} className="mb-5 flex gap-2">
@@ -336,7 +335,7 @@ const Categories: React.FC = () => {
         onClick={openCreateDialog}
         sx={{
           position: "fixed",
-          right: { xs: 16, sm: 24 },
+          insetInlineEnd: { xs: 16, sm: 24 },
           bottom: { xs: 16, sm: 24 },
           backgroundColor: palette.primary.main,
           color: palette.primary.contrastText,

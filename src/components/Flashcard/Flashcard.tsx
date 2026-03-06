@@ -102,7 +102,7 @@ const SideContent: React.FC<{ content: FlashcardSideContent; inverted?: boolean 
           fontSize: '0.9rem',
           lineHeight: 1.5,
           '& p': { margin: '0 0 0.2em', '&:last-child': { marginBottom: 0 } },
-          '& ul, & ol': { paddingLeft: '1.2em', margin: '0 0 0.2em', textAlign: 'left' },
+          '& ul, & ol': { paddingInlineStart: '1.2em', margin: '0 0 0.2em', textAlign: 'start' },
           '& strong': { fontWeight: 700 },
           '& em': { fontStyle: 'italic' },
           '& u': { textDecoration: 'underline' },

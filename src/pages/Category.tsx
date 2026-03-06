@@ -19,7 +19,6 @@ import {
   Pagination,
   TextField,
   Typography,
-  useTheme,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
@@ -178,7 +177,7 @@ const CategoryPage: React.FC = () => {
               </Typography>
             </Box>
             {category?.description && (
-              <Typography variant="body1" color="text.secondary" className="mt-1 ml-12">
+              <Typography variant="body1" color="text.secondary" className="mt-1 ms-12">
                 {category.description}
               </Typography>
             )}
@@ -191,7 +190,7 @@ const CategoryPage: React.FC = () => {
           />
         </Box>
 
-        <Divider className="my-4" />
+        <Divider className="!my-6" />
 
         {/* ── Search ── */}
         <Box component="form" onSubmit={handleSearchSubmit} className="mb-5 flex gap-2">
@@ -261,7 +260,7 @@ const CategoryPage: React.FC = () => {
         onClick={openCreateDialog}
         sx={{
           position: "fixed",
-          right: { xs: 16, sm: 24 },
+          insetInlineEnd: { xs: 16, sm: 24 },
           bottom: { xs: 16, sm: 24 },
           backgroundColor: palette.primary.main,
           color: palette.primary.contrastText,
