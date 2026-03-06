@@ -17,6 +17,7 @@ const ltrCache = createCache({ key: 'mui' });
 const rtlCache = createCache({ key: 'muirtl', stylisPlugins: [prefixer, rtlPlugin] });
 
 const AUTH_PATHS = [
+  '/landing',
   '/login',
   '/signup',
   '/forgot-password',

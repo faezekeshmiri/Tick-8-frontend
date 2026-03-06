@@ -362,6 +362,35 @@ const en = {
       flashcardsCount: '{{count}} flashcards',
     },
 
+    // ── Landing ──
+    landing: {
+      badge: 'SMART FLASHCARDS',
+      heroTitle: 'Master Anything with Spaced Repetition',
+      heroSubtitle: 'Tick 8 helps you learn and retain knowledge using science-backed study techniques. Create flashcards, stay organized, and track your progress — all in one place.',
+      getStarted: 'Get Started Free',
+      signIn: 'I already have an account',
+      featuresLabel: 'FEATURES',
+      featuresHeading: 'Everything you need to learn effectively',
+      featureFlashcardsTitle: 'Smart Flashcards',
+      featureFlashcardsDesc: 'Create rich flashcards with text, images, and formatting. Our spaced repetition algorithm schedules reviews at the optimal time for long-term retention.',
+      featureOrganizeTitle: 'Organized by Design',
+      featureOrganizeDesc: 'Structure your knowledge with categories and subcategories. Drag and drop to reorder, search across your library, and keep everything tidy.',
+      featureProgressTitle: 'Track Your Growth',
+      featureProgressDesc: 'See exactly where you stand with detailed progress tracking. Know which cards you have mastered and which need more practice.',
+      howItWorksLabel: 'HOW IT WORKS',
+      howItWorksHeading: 'Three steps to mastery',
+      step1Title: 'Create your flashcards',
+      step1Desc: 'Add categories and subcategories to organize your study material. Create flashcards with rich text or images for both sides.',
+      step2Title: 'Study with spaced repetition',
+      step2Desc: 'Tick 8 schedules your reviews using a proven algorithm. Cards you struggle with appear more often; mastered cards fade into longer intervals.',
+      step3Title: 'Watch your knowledge grow',
+      step3Desc: 'Track your mastery level across all subjects. Celebrate your progress as cards graduate from learning to long-term memory.',
+      ctaHeading: 'Start learning smarter today',
+      ctaSubtext: 'Join Tick 8 and transform the way you study. Free to get started, powerful enough to master anything.',
+      ctaButton: 'Create Your Free Account',
+      footerCopy: '© 2025 Tick 8. Built for learners.',
+    },
+
     // ── Admin ──
     admin: {
       panelTitle: 'Admin Panel',
