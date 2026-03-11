@@ -36,7 +36,7 @@ const AppContent: React.FC = () => {
   const { i18n } = useTranslation();
 
   const isAuthPage = AUTH_PATHS.some((p) => location.pathname.startsWith(p));
-  const locale = user?.preferred_language ?? 'en';
+  const locale = user?.preferred_language ?? i18n.language ?? 'en';
   const direction = getDirection(locale);
 
   const theme = useMemo(() => {
@@ -59,7 +59,7 @@ const AppContent: React.FC = () => {
   }, [direction, locale, i18n]);
 
   return (
-    <CacheProvider value={direction === 'rtl' ? rtlCache : ltrCache}>
+    <CacheProvider key={direction} value={direction === 'rtl' ? rtlCache : ltrCache}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
         {isAuthPage ? (
