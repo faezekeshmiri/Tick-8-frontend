@@ -36,7 +36,8 @@ const AppContent: React.FC = () => {
   const { i18n } = useTranslation();
 
   const isAuthPage = AUTH_PATHS.some((p) => location.pathname.startsWith(p));
-  const locale = user?.preferred_language ?? i18n.language ?? 'en';
+  const guestLang = !user ? (() => { try { return localStorage.getItem('tick8-guest-lang'); } catch { return null; } })() : null;
+  const locale = user?.preferred_language ?? guestLang ?? i18n.language ?? 'en';
   const direction = getDirection(locale);
 
   const theme = useMemo(() => {

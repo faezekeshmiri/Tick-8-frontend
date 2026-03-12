@@ -10,7 +10,8 @@ import React, {
 import { useQueryClient } from '@tanstack/react-query';
 import * as authApi from '../api/auth';
 import { setAccessToken } from '../api/client';
-import { AuthUser, LoginPayload, RegisterPayload, UpdateProfilePayload } from '../types/auth.types';
+import { AuthUser, LoginPayload, RegisterPayload } from '../types/auth.types';
+import { SUPPORTED_LOCALES, SupportedLocale } from '../assets/theme';
 
 interface AuthContextType {
   user: AuthUser | null;
@@ -57,15 +58,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => window.removeEventListener('auth:logout', handler);
   }, [queryClient]);
 
+  const applyGuestLang = useCallback(async (u: AuthUser) => {
+    try {
+      const stored = localStorage.getItem('tick8-guest-lang');
+      if (
+        stored &&
+        SUPPORTED_LOCALES.includes(stored as SupportedLocale) &&
+        stored !== u.preferred_language
+      ) {
+        const updated = await authApi.updateProfile({ preferred_language: stored });
+        setUser(updated);
+      }
+    } catch { /* best-effort */ }
+    localStorage.removeItem('tick8-guest-lang');
+  }, []);
+
   const login = useCallback(async (payload: LoginPayload) => {
     const { user: u } = await authApi.login(payload);
     setUser(u);
-  }, []);
+    applyGuestLang(u);
+  }, [applyGuestLang]);
 
   const register = useCallback(async (payload: RegisterPayload) => {
     const { user: u } = await authApi.register(payload);
     setUser(u);
-  }, []);
+    applyGuestLang(u);
+  }, [applyGuestLang]);
 
   const logout = useCallback(async () => {
     await authApi.logout();

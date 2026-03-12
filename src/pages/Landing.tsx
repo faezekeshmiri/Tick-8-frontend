@@ -229,6 +229,7 @@ const Landing: React.FC = () => {
     i18n.changeLanguage(next);
     document.documentElement.dir = isRtl(next) ? 'rtl' : 'ltr';
     document.documentElement.lang = next;
+    try { localStorage.setItem('tick8-guest-lang', next); } catch { /* ignore */ }
   };
 
   const scrollTo = (id: string) => {
