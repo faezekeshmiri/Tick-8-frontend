@@ -44,6 +44,12 @@ const fa = {
       logo: 'LOGO',
     },
 
+    // ── Auth Layout ──
+    auth: {
+      panelTitle: 'هر چیزی را با تکرار فاصله‌دار یاد بگیرید',
+      panelSubtitle: 'فلش‌کارت بسازید، منظم بمانید و پیشرفت خود را با تکنیک‌های مطالعه علمی پیگیری کنید.',
+    },
+
     // ── Login ──
     login: {
       welcomeBack: 'خوش آمدید',

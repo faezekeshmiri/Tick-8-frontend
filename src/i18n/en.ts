@@ -44,6 +44,12 @@ const en = {
       logo: 'LOGO',
     },
 
+    // ── Auth Layout ──
+    auth: {
+      panelTitle: 'Master Anything with Spaced Repetition',
+      panelSubtitle: 'Create flashcards, stay organized, and track your progress with science-backed study techniques.',
+    },
+
     // ── Login ──
     login: {
       welcomeBack: 'Welcome Back',
