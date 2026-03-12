@@ -349,7 +349,10 @@ const Landing: React.FC = () => {
               <Button
                 variant="text"
                 onClick={() => navigate('/login')}
-                sx={{ fontWeight: 600, color: 'text.primary' }}
+                sx={{
+                  fontWeight: 600, color: 'text.primary',
+                  display: { xs: 'none', sm: 'inline-flex' },
+                }}
               >
                 {t('nav.login')}
               </Button>
@@ -358,8 +361,9 @@ const Landing: React.FC = () => {
                 onClick={() => navigate('/signup')}
                 sx={{
                   borderRadius: 2,
-                  px: 2.5,
+                  px: { xs: 1.5, sm: 2.5 },
                   fontWeight: 600,
+                  fontSize: { xs: '0.8rem', sm: '0.875rem' },
                   textTransform: 'none',
                   boxShadow: 'none',
                   transition: 'transform 0.2s ease, box-shadow 0.2s ease',
@@ -479,8 +483,11 @@ const Landing: React.FC = () => {
                   endIcon={<ArrowForward />}
                   onClick={() => navigate('/signup')}
                   sx={{
-                    borderRadius: 2.5, px: 4, py: 1.5,
-                    fontWeight: 700, fontSize: '1rem', textTransform: 'none',
+                    borderRadius: 2.5,
+                    px: { xs: 3, sm: 4 }, py: 1.5,
+                    fontWeight: 700,
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    textTransform: 'none',
                     boxShadow: `0 4px 14px ${alpha(primary, 0.4)}`,
                     transition: 'all 0.25s ease',
                     '&:hover': {
@@ -496,8 +503,11 @@ const Landing: React.FC = () => {
                   size="large"
                   onClick={() => navigate('/login')}
                   sx={{
-                    borderRadius: 2.5, px: 4, py: 1.5,
-                    fontWeight: 600, fontSize: '1rem', textTransform: 'none',
+                    borderRadius: 2.5,
+                    px: { xs: 3, sm: 4 }, py: 1.5,
+                    fontWeight: 600,
+                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                    textTransform: 'none',
                     borderColor: alpha(theme.palette.text.primary, 0.2),
                     color: 'text.primary',
                     transition: 'all 0.25s ease',
@@ -520,6 +530,8 @@ const Landing: React.FC = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
+                maxWidth: { xs: 280, sm: 340, md: 'none' },
+                mx: 'auto',
               }}
             >
               <HeroIllustration primary={primary} secondary={secondary} isDark={isDarkMode} />
@@ -550,7 +562,8 @@ const Landing: React.FC = () => {
               variant="h4"
               sx={{
                 textAlign: 'center', fontWeight: 700,
-                letterSpacing: '-0.02em', color: 'text.primary', mb: 8,
+                fontSize: { xs: '1.6rem', sm: '2rem', md: '2.125rem' },
+                letterSpacing: '-0.02em', color: 'text.primary', mb: { xs: 5, md: 8 },
               }}
             >
               {t('landing.featuresHeading')}
@@ -588,7 +601,7 @@ const Landing: React.FC = () => {
                   >
                     {f.icon}
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5, color: 'text.primary' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5, color: 'text.primary', fontSize: { xs: '1.05rem', sm: '1.25rem' } }}>
                     {f.title}
                   </Typography>
                   <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
@@ -626,7 +639,8 @@ const Landing: React.FC = () => {
               variant="h4"
               sx={{
                 textAlign: 'center', fontWeight: 700,
-                letterSpacing: '-0.02em', color: 'text.primary', mb: 8,
+                fontSize: { xs: '1.6rem', sm: '2rem', md: '2.125rem' },
+                letterSpacing: '-0.02em', color: 'text.primary', mb: { xs: 5, md: 8 },
               }}
             >
               {t('landing.howItWorksHeading')}
@@ -641,7 +655,7 @@ const Landing: React.FC = () => {
                   spacing={3}
                   alignItems="flex-start"
                   sx={{
-                    p: 3, borderRadius: 3,
+                    p: { xs: 2, sm: 3 }, borderRadius: 3,
                     transition: 'all 0.3s ease',
                     '&:hover': {
                       bgcolor: alpha(primary, 0.06),
@@ -655,7 +669,7 @@ const Landing: React.FC = () => {
                   <Typography
                     className="step-num"
                     sx={{
-                      fontWeight: 800, fontSize: '2rem', lineHeight: 1,
+                      fontWeight: 800, fontSize: { xs: '1.5rem', sm: '2rem' }, lineHeight: 1,
                       color: alpha(primary, 0.25),
                       minWidth: 48, userSelect: 'none',
                       transition: 'all 0.3s ease',
@@ -664,7 +678,7 @@ const Landing: React.FC = () => {
                     {step.number}
                   </Typography>
                   <Box>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75, color: 'text.primary' }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.75, color: 'text.primary', fontSize: { xs: '1rem', sm: '1.25rem' } }}>
                       {step.title}
                     </Typography>
                     <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
@@ -687,7 +701,10 @@ const Landing: React.FC = () => {
           <FadeSection>
             <Typography
               variant="h4"
-              sx={{ fontWeight: 700, letterSpacing: '-0.02em', color: 'text.primary', mb: 2 }}
+              sx={{
+                fontWeight: 700, letterSpacing: '-0.02em', color: 'text.primary', mb: 2,
+                fontSize: { xs: '1.6rem', sm: '2rem', md: '2.125rem' },
+              }}
             >
               {t('landing.ctaHeading')}
             </Typography>
@@ -707,8 +724,11 @@ const Landing: React.FC = () => {
               endIcon={<ArrowForward />}
               onClick={() => navigate('/signup')}
               sx={{
-                borderRadius: 2.5, px: 5, py: 1.5,
-                fontWeight: 700, fontSize: '1rem', textTransform: 'none',
+                borderRadius: 2.5,
+                px: { xs: 3, sm: 5 }, py: 1.5,
+                fontWeight: 700,
+                fontSize: { xs: '0.9rem', sm: '1rem' },
+                textTransform: 'none',
                 boxShadow: `0 4px 14px ${alpha(primary, 0.4)}`,
                 transition: 'all 0.25s ease',
                 '&:hover': {
@@ -749,6 +769,7 @@ const Landing: React.FC = () => {
               variant="h4"
               sx={{
                 textAlign: 'center', fontWeight: 700,
+                fontSize: { xs: '1.6rem', sm: '2rem', md: '2.125rem' },
                 letterSpacing: '-0.02em', color: 'text.primary', mb: 3,
               }}
             >
@@ -823,8 +844,12 @@ const Landing: React.FC = () => {
       {/* ── Contact Us ── */}
       <Box
         id="contact"
-        sx={{ py: { xs: 8, md: 12 }, scrollMarginTop: '72px' }}
+        sx={{ py: { xs: 8, md: 12 }, scrollMarginTop: '72px', position: 'relative' }}
       >
+        <FloatingShape top="12%" left="6%" size={16} color={alpha(primary, 0.06)} delay={0.7} duration={8} />
+        <FloatingShape top="18%" right="10%" size={12} color={alpha(secondary, 0.05)} delay={1.8} duration={7} />
+        <FloatingShape bottom="16%" left="14%" size={20} color={alpha(primary, 0.05)} delay={1.2} duration={9} />
+        <FloatingShape bottom="10%" right="8%" size={14} color={alpha(secondary, 0.04)} delay={2.3} duration={7.5} />
         <Container maxWidth="md">
           <FadeSection>
             <Typography
@@ -842,6 +867,7 @@ const Landing: React.FC = () => {
               variant="h4"
               sx={{
                 textAlign: 'center', fontWeight: 700,
+                fontSize: { xs: '1.6rem', sm: '2rem', md: '2.125rem' },
                 letterSpacing: '-0.02em', color: 'text.primary', mb: 2,
               }}
             >
@@ -860,10 +886,10 @@ const Landing: React.FC = () => {
             </Typography>
           </FadeSection>
 
-          <Stack direction={{ xs: 'column', md: 'row' }} spacing={6} alignItems="flex-start">
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={{ xs: 5, md: 6 }} alignItems="flex-start">
             {/* Contact info */}
-            <FadeSection delay={0.15} sx={{ flex: 1 }}>
-              <Stack spacing={3.5}>
+            <FadeSection delay={0.15} sx={{ flex: 1, width: '100%' }}>
+              <Stack spacing={3.5} sx={{ alignItems: { xs: 'center', md: 'flex-start' } }}>
                 <Stack direction="row" spacing={2} alignItems="center">
                   <Box
                     sx={{
@@ -907,7 +933,7 @@ const Landing: React.FC = () => {
             </FadeSection>
 
             {/* Contact form */}
-            <FadeSection delay={0.2} sx={{ flex: 1.4 }}>
+            <FadeSection delay={0.2} sx={{ flex: 1.4, width: '100%' }}>
               <Box
                 component="form"
                 onSubmit={(e: React.FormEvent) => e.preventDefault()}
