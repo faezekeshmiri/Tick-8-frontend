@@ -234,7 +234,7 @@ const Categories: React.FC = () => {
             <CircularProgress />
           </Box>
         ) : categories.length === 0 ? (
-          <Card className="border border-dashed border-gray-200/70">
+          <Card className="border border-dashed border-gray-200/70 dark:border-gray-600/40">
             <CardContent className="py-12 text-center">
               <FolderOpenIcon sx={{ fontSize: 48 }} color="disabled" />
               <Typography variant="h6" className="font-semibold mt-3">
@@ -251,13 +251,15 @@ const Categories: React.FC = () => {
               {categories.map((cat) => (
                 <Card
                   key={cat.id}
-                  className="border border-gray-100/70 shadow-sm"
+                  className="border border-gray-100/70 dark:border-gray-600/30 shadow-sm"
                   sx={{
                     cursor: "pointer",
                     transition: "transform 0.2s ease, box-shadow 0.2s ease",
                     "&:hover": {
                       transform: "translateY(-4px)",
-                      boxShadow: "0 12px 24px rgba(15,23,42,0.08)",
+                      boxShadow: isDarkMode
+                        ? "0 12px 24px rgba(0,0,0,0.35)"
+                        : "0 12px 24px rgba(15,23,42,0.08)",
                     },
                   }}
                   onClick={() => navigate(`/categories/${cat.id}/subcategories`)}

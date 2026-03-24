@@ -31,7 +31,7 @@ const EmailVerificationBanner: React.FC = () => {
       <Alert
         severity="warning"
         icon={<MarkEmailRead />}
-        sx={{ borderRadius: 0, px: 3 }}
+        sx={{ borderRadius: 0, px: 3, bgcolor: 'background.default' }}
         action={
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <Button

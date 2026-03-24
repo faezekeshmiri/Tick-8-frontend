@@ -44,6 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar, variant = "permanent",
   const theme = useTheme();
   const { isDarkMode } = useContext(ThemeModeContext);
   const palette = (isDarkMode ? darkTheme : lightTheme).palette;
+  const sidebarBg = isDarkMode ? '#012A4A' : palette.primary.main;
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [submenuItems, setSubmenuItems] = useState<SubmenuItem[]>([]);
@@ -86,7 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar, variant = "permanent",
             position: "relative",
             boxSizing: "border-box",
             borderInlineEnd: `1px solid ${theme.palette.divider}`,
-            backgroundColor: palette.primary.main,
+            backgroundColor: sidebarBg,
             boxShadow: drawerPaperShadow,
           },
         }
@@ -94,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar, variant = "permanent",
           "& .MuiDrawer-paper": {
             boxSizing: "border-box",
             width: 280,
-            backgroundColor: palette.primary.main,
+            backgroundColor: sidebarBg,
             boxShadow: "8px 0 32px -4px rgba(0, 0, 0, 0.2), 4px 0 12px -2px rgba(0, 0, 0, 0.12)",
           },
         };
@@ -109,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar, variant = "permanent",
         sx={drawerSx}
         slotProps={{
           paper: {
-            sx: { backgroundColor: palette.primary.main },
+            sx: { backgroundColor: sidebarBg },
           },
         }}
       >
@@ -149,14 +150,14 @@ const Sidebar: React.FC<SidebarProps> = ({ items, avatar, variant = "permanent",
                     width: { xs: 48, sm: 50, md: 52 },
                     height: { xs: 48, sm: 50, md: 52 },
                     borderRadius: "50%",
-                    bgcolor: "primary.main",
+                    bgcolor: isDarkMode ? sidebarBg : "primary.main",
                     color: "white",
                     transition: "all 0.3s ease-in-out",
                     boxShadow: "0 2px 4px rgba(0,0,0,0.15)",
                     "&:hover": {
                       transform: "scale(1.15)",
                       boxShadow: "0 6px 12px rgba(0,0,0,0.25)",
-                      bgcolor: "primary.light",
+                      bgcolor: isDarkMode ? "#01334e" : "primary.light",
                     },
                   }}
                 >

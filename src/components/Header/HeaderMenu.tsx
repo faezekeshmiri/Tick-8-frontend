@@ -51,11 +51,11 @@ export default function HeaderMenu({ onLogout }: HeaderMenuProps) {
           width: { xs: 44, sm: 46, md: 48 },
           height: { xs: 44, sm: 46, md: 48 },
           borderRadius: "50%",
-          bgcolor: "primary.main",
+          bgcolor: isDarkMode ? "#012A4A" : "primary.main",
           color: "white",
           transition: "all 0.3s ease-in-out",
           "&:hover": {
-            bgcolor: "primary.light",
+            bgcolor: isDarkMode ? "#01334e" : "primary.light",
           },
         }}
       >

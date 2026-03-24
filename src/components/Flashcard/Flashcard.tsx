@@ -227,6 +227,8 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
         justifyContent: 'center',
         zIndex: 2,
         mb: 0.5,
+        px: 1,
+        boxSizing: 'border-box',
       }}
     >
       <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flex: 1 }}>

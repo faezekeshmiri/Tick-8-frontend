@@ -757,7 +757,7 @@ const SubCategoryPage: React.FC = () => {
 
         {progress != null && progress.total > 0 && (
           <Box
-            className="rounded-xl border border-gray-200/70 p-4 mb-4"
+            className="rounded-xl border border-gray-200/70 dark:border-gray-600/30 p-4 mb-4"
             sx={{ bgcolor: "background.paper" }}
           >
             <Typography variant="subtitle2" fontWeight={600} gutterBottom>
@@ -815,7 +815,7 @@ const SubCategoryPage: React.FC = () => {
         {loading ? (
           <Box className="flex justify-center py-16"><CircularProgress /></Box>
         ) : flashcards.length === 0 ? (
-          <Box className="rounded-2xl border border-dashed border-gray-200/70 py-12 text-center">
+          <Box className="rounded-2xl border border-dashed border-gray-200/70 dark:border-gray-600/40 py-12 text-center">
             <Typography variant="h6" className="font-semibold">
               {search ? t('subcategory.noMatch') : t('subcategory.noneYet')}
             </Typography>

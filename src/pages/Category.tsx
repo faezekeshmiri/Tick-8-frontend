@@ -222,7 +222,7 @@ const CategoryPage: React.FC = () => {
         {loading ? (
           <Box className="flex justify-center py-16"><CircularProgress /></Box>
         ) : subCategories.length === 0 ? (
-          <Card className="border border-dashed border-gray-200/70">
+          <Card className="border border-dashed border-gray-200/70 dark:border-gray-600/40">
             <CardContent className="py-12 text-center">
               <Typography variant="h6" className="font-semibold">
                 {search ? t('category.noMatch') : t('category.noneYet')}

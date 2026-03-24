@@ -10,32 +10,33 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#00B4D8',         // light mode main
-          light: '#48CAE4',           // light mode light
-          dark: '#0096C7',            // light mode dark
-          contrast: '#ffffff',        // light mode contrastText
-          'main-dark': '#90caf9',     // dark mode main
-          'light-dark': '#a6d6ff',    // dark mode light (optional)
-          'dark-dark': '#42a5f5',     // dark mode dark (optional)
-          'contrast-dark': '#000000', // dark mode contrastText (optional)
+          DEFAULT: '#00B4D8',
+          light: '#48CAE4',
+          dark: '#0096C7',
+          contrast: '#ffffff',
+          'main-dark': '#38bdf8',
+          'light-dark': '#7dd3fc',
+          'dark-dark': '#0284c7',
+          'contrast-dark': '#011627',
         },
         secondary: {
           DEFAULT: '#10b981',
           light: '#6ee7b7',
           dark: '#047857',
           contrast: '#ffffff',
-          'main-dark': '#80cbc4',
-          'light-dark': '#b2fef7',
-          'dark-dark': '#00867d',
-          'contrast-dark': '#000000',
+          'main-dark': '#34d399',
+          'light-dark': '#6ee7b7',
+          'dark-dark': '#059669',
+          'contrast-dark': '#011627',
         },
         error: {
           DEFAULT: '#c1121f',
-          'main-dark': '#ef9a9a',
+          'main-dark': '#f87171',
         },
         background: {
-          DEFAULT: '#fef9ef',         // light mode default
-          'main-dark': '#012A4A',     // dark mode default
+          DEFAULT: '#fef9ef',
+          'main-dark': '#011627',
+          'paper-dark': '#012A4A',
         },
       },
     },

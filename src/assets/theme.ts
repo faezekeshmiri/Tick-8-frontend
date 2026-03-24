@@ -118,40 +118,187 @@ export const darkTheme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#90caf9',
-      light: '#a6d6ff',
+      main: '#38bdf8',
+      light: '#7dd3fc',
+      dark: '#0284c7',
+      contrastText: '#011627',
+    },
+    secondary: {
+      main: '#34d399',
+      light: '#6ee7b7',
+      dark: '#059669',
+      contrastText: '#011627',
+    },
+    error: {
+      main: '#f87171',
+      light: '#fca5a5',
+      dark: '#dc2626',
+    },
+    warning: {
+      main: '#fbbf24',
+      light: '#fde68a',
+      dark: '#d97706',
+    },
+    info: {
+      main: '#60a5fa',
+      light: '#93c5fd',
+      dark: '#2563eb',
+    },
+    success: {
+      main: '#34d399',
+      light: '#6ee7b7',
+      dark: '#059669',
     },
     background: {
-      default: '#012A4A',
+      default: '#011627',
+      paper: '#012A4A',
+    },
+    text: {
+      primary: '#e0f2fe',
+      secondary: '#7eb8d8',
+    },
+    divider: 'rgba(56, 189, 248, 0.12)',
+    action: {
+      hover: 'rgba(56, 189, 248, 0.08)',
+      selected: 'rgba(56, 189, 248, 0.14)',
+      focus: 'rgba(56, 189, 248, 0.14)',
     },
   },
   components: {
     ...alertSnackbarOverrides,
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          scrollbarColor: '#1e3a5f #011627',
+          '&::-webkit-scrollbar': { width: 8 },
+          '&::-webkit-scrollbar-track': { background: '#011627' },
+          '&::-webkit-scrollbar-thumb': {
+            background: '#1e3a5f',
+            borderRadius: 4,
+            '&:hover': { background: '#2a4f73' },
+          },
+        },
+      },
+    },
     MuiAppBar: {
       styleOverrides: {
-        root: ({ theme }) => ({
-          backgroundColor: theme.palette.primary.main,
-          color: theme.palette.primary.contrastText,
-        }),
+        colorPrimary: {
+          backgroundColor: '#012A4A',
+          backgroundImage: 'none',
+          borderBottom: '1px solid rgba(56, 189, 248, 0.1)',
+        },
       },
     },
     MuiDrawer: {
       styleOverrides: {
-        paper: ({ theme }) => ({
-          backgroundColor: theme.palette.primary.main,
-        }),
+        paper: {
+          backgroundColor: '#012A4A',
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+          border: '1px solid rgba(56, 189, 248, 0.1)',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        containedPrimary: {
+          boxShadow: '0 2px 8px rgba(56, 189, 248, 0.25)',
+          '&:hover': {
+            boxShadow: '0 4px 16px rgba(56, 189, 248, 0.35)',
+          },
+        },
+        outlinedPrimary: {
+          borderColor: 'rgba(56, 189, 248, 0.4)',
+          '&:hover': {
+            borderColor: '#38bdf8',
+            backgroundColor: 'rgba(56, 189, 248, 0.08)',
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: 'rgba(56, 189, 248, 0.2)',
+            },
+            '&:hover fieldset': {
+              borderColor: 'rgba(56, 189, 248, 0.4)',
+            },
+          },
+        },
       },
     },
     MuiFab: {
       styleOverrides: {
-        root: ({ theme }) => ({
-          backgroundColor: theme.palette.primary.main,
-          color: theme.palette.primary.contrastText,
+        root: {
+          backgroundColor: '#38bdf8',
+          color: '#011627',
+          boxShadow: '0 6px 20px rgba(56, 189, 248, 0.3)',
           '&:hover': {
-            backgroundColor: theme.palette.primary.dark,
-            color: theme.palette.primary.contrastText,
+            backgroundColor: '#7dd3fc',
+            boxShadow: '0 8px 28px rgba(56, 189, 248, 0.4)',
           },
-        }),
+        },
+      },
+    },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {
+          backgroundImage: 'none',
+          border: '1px solid rgba(56, 189, 248, 0.1)',
+        },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          backgroundImage: 'none',
+          border: '1px solid rgba(56, 189, 248, 0.1)',
+        },
+      },
+    },
+    MuiDivider: {
+      styleOverrides: {
+        root: {
+          borderColor: 'rgba(56, 189, 248, 0.1)',
+        },
+      },
+    },
+    MuiChip: {
+      styleOverrides: {
+        outlined: {
+          borderColor: 'rgba(56, 189, 248, 0.25)',
+        },
+      },
+    },
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          backgroundColor: '#01334e',
+          border: '1px solid rgba(56, 189, 248, 0.15)',
+        },
+      },
+    },
+    MuiSkeleton: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(56, 189, 248, 0.08)',
+        },
       },
     },
   },

@@ -48,7 +48,7 @@ const AppContent: React.FC = () => {
   useEffect(() => {
     document.body.classList.toggle('dark', isDarkMode);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', isDarkMode ? '#012A4A' : '#00B4D8');
+    if (meta) meta.setAttribute('content', isDarkMode ? '#011627' : '#00B4D8');
   }, [isDarkMode]);
 
   useEffect(() => {
