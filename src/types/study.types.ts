@@ -25,6 +25,7 @@ export interface FlashcardSideContent {
 export interface QueueItemWithCard {
   progress_id: number;
   flashcard_id: number;
+  subcategory_color: string;
   front: FlashcardSideContent;
   back: FlashcardSideContent;
   marks: TickMark[];
@@ -56,6 +57,7 @@ export interface StudyCardResponse {
   content: StudyCardSideResponse;
   content_hidden: StudyCardSideResponse;
   hidden_side_label: string;
+  subcategory_color: string;
 }
 
 export interface RecordTickResponse {

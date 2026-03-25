@@ -38,7 +38,9 @@ import { getCategory } from "../api/categories";
 import { queryKeys } from "../api/queryKeys";
 import type { Category, SubCategory } from "../types/content.types";
 import SubCategoryCard from "../components/SubCategoryCard";
+import SubcategoryColorPicker from "../components/SubcategoryColorPicker";
 import { extractErrorMessage } from "../utils/error";
+import { DEFAULT_SUBCATEGORY_COLOR, resolveSubcategoryColor } from "../utils/subcategoryColors";
 
 const PER_PAGE = 12;
 
@@ -58,6 +60,7 @@ const CategoryPage: React.FC = () => {
   const [editingSub, setEditingSub] = useState<SubCategory | null>(null);
   const [formTitle, setFormTitle] = useState("");
   const [formDescription, setFormDescription] = useState("");
+  const [formColor, setFormColor] = useState<string>(DEFAULT_SUBCATEGORY_COLOR);
   const [formError, setFormError] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<SubCategory | null>(null);
 
@@ -85,9 +88,24 @@ const CategoryPage: React.FC = () => {
   const pages = subData?.pages ?? 1;
   const listError = listErrorRaw ? extractErrorMessage(listErrorRaw, t('category.loadError')) : "";
   const saveMutation = useMutation({
-    mutationFn: async (payload: { id?: number; title: string; description: string | null }) => {
-      if (payload.id) return updateSubCategory(payload.id, { title: payload.title, description: payload.description });
-      return createSubCategory(catId, { title: payload.title, description: payload.description });
+    mutationFn: async (payload: {
+      id?: number;
+      title: string;
+      description: string | null;
+      color: string;
+    }) => {
+      if (payload.id) {
+        return updateSubCategory(payload.id, {
+          title: payload.title,
+          description: payload.description,
+          color: payload.color,
+        });
+      }
+      return createSubCategory(catId, {
+        title: payload.title,
+        description: payload.description,
+        color: payload.color,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.subcategories(catId) });
@@ -119,6 +137,7 @@ const CategoryPage: React.FC = () => {
     setEditingSub(null);
     setFormTitle("");
     setFormDescription("");
+    setFormColor(DEFAULT_SUBCATEGORY_COLOR);
     setFormError("");
     setIsDialogOpen(true);
   };
@@ -127,6 +146,7 @@ const CategoryPage: React.FC = () => {
     setEditingSub(sub);
     setFormTitle(sub.title);
     setFormDescription(sub.description ?? "");
+    setFormColor(resolveSubcategoryColor(sub.id, sub.color));
     setFormError("");
     setIsDialogOpen(true);
   };
@@ -145,6 +165,7 @@ const CategoryPage: React.FC = () => {
         id: editingSub?.id,
         title: trimmedTitle,
         description: formDescription.trim() || null,
+        color: formColor,
       },
       {
         onError: (err) => {
@@ -297,6 +318,7 @@ const CategoryPage: React.FC = () => {
             onChange={(e) => setFormDescription(e.target.value)}
             multiline minRows={3} className="mt-2 mb-1"
           />
+          <SubcategoryColorPicker value={formColor} onChange={setFormColor} />
           {formError && formTitle.trim() && (
             <Alert severity="error" className="mb-2">{formError}</Alert>
           )}

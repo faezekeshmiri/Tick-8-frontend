@@ -4,29 +4,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useTranslation } from 'react-i18next';
 import type { SubCategory } from "../types/content.types";
-
-// Deterministic color palette derived from the subcategory id
-const CARD_COLORS = [
-  "#38bdf8", // sky
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#fb7185", // rose
-  "#8b5cf6", // violet
-  "#64748b", // slate
-  "#f97316", // orange
-  "#06b6d4", // cyan
-];
-
-function cardColor(id: number): string {
-  return CARD_COLORS[id % CARD_COLORS.length];
-}
-
-function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+import { hexToRgba, resolveSubcategoryColor } from "../utils/subcategoryColors";
 
 type SubCategoryCardProps = {
   item: SubCategory;
@@ -37,7 +15,7 @@ type SubCategoryCardProps = {
 
 const SubCategoryCard: React.FC<SubCategoryCardProps> = ({ item, onClick, onEdit, onDelete }) => {
   const { t } = useTranslation();
-  const color = cardColor(item.id);
+  const color = resolveSubcategoryColor(item.id, item.color);
 
   return (
     <Box

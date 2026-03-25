@@ -17,7 +17,7 @@ export const getSubCategory = (id: number) =>
 
 export const createSubCategory = (
   categoryId: number,
-  data: { title: string; description?: string | null },
+  data: { title: string; description?: string | null; color?: string | null },
 ) =>
   apiClient
     .post<SubCategory>(`/categories/${categoryId}/subcategories`, data)
@@ -25,7 +25,7 @@ export const createSubCategory = (
 
 export const updateSubCategory = (
   id: number,
-  data: { title?: string; description?: string | null },
+  data: { title?: string; description?: string | null; color?: string | null },
 ) => apiClient.patch<SubCategory>(`/subcategories/${id}`, data).then((r) => r.data);
 
 export const deleteSubCategory = (id: number) =>

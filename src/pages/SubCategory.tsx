@@ -83,6 +83,7 @@ import type { MarkType } from "../components/Flashcard/Flashcard";
 import FlashcardComponent from "../components/Flashcard";
 import RichTextEditor from "../components/RichTextEditor";
 import { extractErrorMessage } from "../utils/error";
+import { DEFAULT_SUBCATEGORY_COLOR, resolveSubcategoryColor } from "../utils/subcategoryColors";
 
 const PER_PAGE = 20;
 
@@ -285,6 +286,7 @@ const marksToTickMarks = (front: MarkType[], back: MarkType[]): TickMark[] => [
 
 interface SortableFlashcardItemProps {
   card: Flashcard;
+  accentColor: string;
   progressId: number | null;
   progressMarks?: TickMark[];
   onEdit: () => void;
@@ -294,6 +296,7 @@ interface SortableFlashcardItemProps {
 
 const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
   card,
+  accentColor,
   progressId,
   progressMarks,
   onEdit,
@@ -336,6 +339,7 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
         <FlashcardComponent
           front={card.front}
           back={card.back}
+          color={accentColor}
           progressMarks={progressMarks}
           onMarksChange={handleMarksChange}
         />
@@ -725,6 +729,9 @@ const SubCategoryPage: React.FC = () => {
 
   const subTitle = subCategory?.title ?? t('subcategory.fallback');
   const catTitle = category?.title ?? t('subcategory.categoryFallback');
+  const flashcardAccent = subCategory
+    ? resolveSubcategoryColor(subCategory.id, subCategory.color)
+    : DEFAULT_SUBCATEGORY_COLOR;
 
   return (
     <Box className="w-full">
@@ -849,6 +856,7 @@ const SubCategoryPage: React.FC = () => {
                       <SortableFlashcardItem
                         key={card.id}
                         card={card}
+                        accentColor={flashcardAccent}
                         progressId={progressId}
                         progressMarks={progressMarks}
                         onEdit={() => openEditDialog(card)}

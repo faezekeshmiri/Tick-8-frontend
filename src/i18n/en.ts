@@ -192,6 +192,10 @@ const en = {
       deleteSubcategory: 'Delete subcategory?',
       deleteWarning: 'Deleting <strong>"{{title}}"</strong> will also delete all flashcards inside it.',
       addSubcategory: 'add subcategory',
+      subcategoryColor: 'Accent color',
+      subcategoryColorHint: 'Flashcards and previews use this accent.',
+      subcategoryColorPresets: 'Presets',
+      subcategoryColorCustom: 'Custom',
     },
 
     // ── SubCategory ──

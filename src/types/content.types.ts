@@ -35,6 +35,8 @@ export interface SubCategory {
   category_id: number;
   title: string;
   description: string | null;
+  /** #RRGGBB; null on legacy rows — UI falls back to id-based palette */
+  color: string | null;
   flashcard_count: number;
   created_at: string;
   updated_at: string;

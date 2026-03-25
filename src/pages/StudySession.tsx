@@ -231,6 +231,7 @@ const StudySession: React.FC = () => {
               text: card.content_hidden.text ?? null,
               image_url: card.content_hidden.image_url ?? null,
             }}
+            color={card.subcategory_color}
             mode="study"
             revealed={revealed}
           />

@@ -176,6 +176,7 @@ const Home: React.FC = () => {
                       text: item.back.text ?? null,
                       image_url: item.back.image_url ?? null,
                     }}
+                    color={item.subcategory_color}
                     progressMarks={item.marks}
                     onMarksChange={(frontMarks, backMarks) =>
                       handleMarksChange(item.progress_id, frontMarks, backMarks)

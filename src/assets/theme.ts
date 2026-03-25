@@ -38,7 +38,7 @@ export function createAppTheme(base: Theme, locale: string): Theme {
 const alertSnackbarOverrides = {
   MuiAlert: {
     styleOverrides: {
-      root: ({ theme }) => ({
+      root: ({ theme }: { theme: Theme }) => ({
         boxShadow:
           theme.palette.mode === 'light'
             ? '0 4px 12px -2px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.06)'
@@ -55,19 +55,19 @@ const alertSnackbarOverrides = {
           alignItems: 'center',
         },
       }),
-      standardError: ({ theme }) => ({
+      standardError: ({ theme }: { theme: Theme }) => ({
         borderLeft: `4px solid ${theme.palette.error.main}`,
         borderRight: 'none',
       }),
-      standardWarning: ({ theme }) => ({
+      standardWarning: ({ theme }: { theme: Theme }) => ({
         borderLeft: `4px solid ${theme.palette.warning?.main ?? '#ed6c02'}`,
         borderRight: 'none',
       }),
-      standardInfo: ({ theme }) => ({
+      standardInfo: ({ theme }: { theme: Theme }) => ({
         borderLeft: `4px solid ${theme.palette.info?.main ?? theme.palette.primary.main}`,
         borderRight: 'none',
       }),
-      standardSuccess: ({ theme }) => ({
+      standardSuccess: ({ theme }: { theme: Theme }) => ({
         borderLeft: `4px solid ${theme.palette.success?.main ?? '#2e7d32'}`,
         borderRight: 'none',
       }),
@@ -75,7 +75,7 @@ const alertSnackbarOverrides = {
   },
   MuiSnackbar: {
     styleOverrides: {
-      root: ({ theme }) => ({
+      root: ({ theme }: { theme: Theme }) => ({
         '& > *': {
           boxShadow:
             theme.palette.mode === 'light'

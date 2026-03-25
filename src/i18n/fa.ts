@@ -192,6 +192,10 @@ const fa = {
       deleteSubcategory: 'حذف زیردسته؟',
       deleteWarning: 'حذف <strong>«{{title}}»</strong> تمام فلش‌کارت‌های داخل آن را نیز حذف می‌کند.',
       addSubcategory: 'افزودن زیردسته',
+      subcategoryColor: 'رنگ برجسته',
+      subcategoryColorHint: 'فلش‌کارت‌ها و پیش‌نمایش‌ها از این رنگ استفاده می‌کنند.',
+      subcategoryColorPresets: 'پیش‌تنظیم‌ها',
+      subcategoryColorCustom: 'سفارشی',
     },
 
     // ── SubCategory ──

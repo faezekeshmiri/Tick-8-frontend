@@ -117,7 +117,7 @@ export function adminGetSubCategory(userId: number, subId: number) {
 export function adminCreateSubCategory(
   userId: number,
   categoryId: number,
-  data: { title: string; description?: string | null },
+  data: { title: string; description?: string | null; color?: string | null },
 ) {
   return apiClient
     .post<SubCategory>(
@@ -130,7 +130,7 @@ export function adminCreateSubCategory(
 export function adminUpdateSubCategory(
   userId: number,
   subId: number,
-  data: { title?: string; description?: string | null },
+  data: { title?: string; description?: string | null; color?: string | null },
 ) {
   return apiClient
     .patch<SubCategory>(`${adminUser(userId)}/subcategories/${subId}`, data)

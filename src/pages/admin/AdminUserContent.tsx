@@ -31,6 +31,8 @@ import {
 } from '@mui/icons-material';
 import * as adminApi from '../../api/admin';
 import type { Category, Flashcard, FlashcardSide, SubCategory } from '../../types/content.types';
+import SubcategoryColorPicker from '../../components/SubcategoryColorPicker';
+import { DEFAULT_SUBCATEGORY_COLOR, resolveSubcategoryColor } from '../../utils/subcategoryColors';
 import { extractErrorMessage } from '../../utils/error';
 
 const PER_PAGE = 100;
@@ -178,15 +180,30 @@ const AdminUserContent: React.FC = () => {
     sub: SubCategory | null;
     title: string;
     description: string;
-  }>({ open: false, categoryId: 0, sub: null, title: '', description: '' });
+    color: string;
+  }>({ open: false, categoryId: 0, sub: null, title: '', description: '', color: DEFAULT_SUBCATEGORY_COLOR });
   const [subSaving, setSubSaving] = useState(false);
   const [subError, setSubError] = useState('');
   const openAddSub = (categoryId: number) => {
-    setSubDialog({ open: true, categoryId, sub: null, title: '', description: '' });
+    setSubDialog({
+      open: true,
+      categoryId,
+      sub: null,
+      title: '',
+      description: '',
+      color: DEFAULT_SUBCATEGORY_COLOR,
+    });
     setSubError('');
   };
   const openEditSub = (s: SubCategory) => {
-    setSubDialog({ open: true, categoryId: s.category_id, sub: s, title: s.title, description: s.description ?? '' });
+    setSubDialog({
+      open: true,
+      categoryId: s.category_id,
+      sub: s,
+      title: s.title,
+      description: s.description ?? '',
+      color: resolveSubcategoryColor(s.id, s.color),
+    });
     setSubError('');
   };
   const saveSub = async () => {
@@ -199,10 +216,18 @@ const AdminUserContent: React.FC = () => {
     setSubError('');
     try {
       if (subDialog.sub) {
-        await adminApi.adminUpdateSubCategory(uid, subDialog.sub.id, { title, description: subDialog.description || null });
+        await adminApi.adminUpdateSubCategory(uid, subDialog.sub.id, {
+          title,
+          description: subDialog.description || null,
+          color: subDialog.color,
+        });
         setToast({ message: 'Subcategory updated.', severity: 'success' });
       } else {
-        await adminApi.adminCreateSubCategory(uid, subDialog.categoryId, { title, description: subDialog.description || null });
+        await adminApi.adminCreateSubCategory(uid, subDialog.categoryId, {
+          title,
+          description: subDialog.description || null,
+          color: subDialog.color,
+        });
         setToast({ message: 'Subcategory created.', severity: 'success' });
       }
       setSubDialog((d) => ({ ...d, open: false }));
@@ -585,6 +610,10 @@ const AdminUserContent: React.FC = () => {
             rows={2}
             value={subDialog.description}
             onChange={(e) => setSubDialog((d) => ({ ...d, description: e.target.value }))}
+          />
+          <SubcategoryColorPicker
+            value={subDialog.color}
+            onChange={(c) => setSubDialog((d) => ({ ...d, color: c }))}
           />
         </DialogContent>
         <DialogActions>
