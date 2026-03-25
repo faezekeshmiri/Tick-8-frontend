@@ -149,13 +149,13 @@ const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }
   };
 
   return (
-    <Box>
+    <Box sx={{ width: "100%", minWidth: 0, maxWidth: "100%" }}>
       {/* ── Row: label + type toggle + rich-text switch ── */}
-      <Box className="flex items-center justify-between mb-1 flex-wrap gap-2">
+      <Box className="flex items-center justify-between mb-1 flex-wrap gap-2" sx={{ minWidth: 0 }}>
         <Typography variant="body2" color="text.secondary" fontWeight={600}>
           {label}
         </Typography>
-        <Box className="flex items-center gap-2">
+        <Box className="flex items-center gap-2" sx={{ minWidth: 0, flexShrink: 1 }}>
           {/* Rich text toggle — only meaningful for text sides */}
           {value.type === "text" && (
             <FormControlLabel
@@ -215,7 +215,17 @@ const SideEditor: React.FC<SideEditorProps> = ({ label, value, onChange, error }
             value={value.text ?? ""}
             onChange={(e) => onChange({ ...value, text: e.target.value })}
             error={!!error}
-            helperText={error || " "}
+            helperText={error || undefined}
+            sx={{
+              maxWidth: "100%",
+              "& .MuiInputBase-root": { maxWidth: "100%" },
+              "& textarea": {
+                overflowX: "hidden",
+                overflowY: "auto",
+                wordBreak: "break-word",
+                resize: "vertical",
+              },
+            }}
           />
         )
       ) : (
@@ -335,27 +345,13 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
       className="flex flex-col items-center"
       sx={{ opacity: isDragging ? 0.5 : 1 }}
     >
-      <Box sx={{ position: "relative", display: "inline-block" }}>
-        <FlashcardComponent
-          front={card.front}
-          back={card.back}
-          color={accentColor}
-          progressMarks={progressMarks}
-          onMarksChange={handleMarksChange}
-        />
-
-        {/* Top-left: drag handle + three-dot menu */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 8,
-            insetInlineStart: 8,
-            zIndex: 2,
-            display: "flex",
-            alignItems: "center",
-            gap: 0.25,
-          }}
-        >
+      <FlashcardComponent
+        front={card.front}
+        back={card.back}
+        color={accentColor}
+        progressMarks={progressMarks}
+        onMarksChange={handleMarksChange}
+        topLeftAdornment={
           <Tooltip title={t('subcategory.dragReorder')} placement="top">
             <Box
               {...listeners}
@@ -373,10 +369,15 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
               <DragIndicatorIcon sx={{ fontSize: 20 }} color="action" />
             </Box>
           </Tooltip>
+        }
+        topRightAdornment={
           <Tooltip title={t('subcategory.options')} placement="top">
             <IconButton
               size="small"
-              onClick={(e) => { e.stopPropagation(); setMenuAnchor(e.currentTarget); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenuAnchor(e.currentTarget);
+              }}
               sx={{
                 minWidth: 32,
                 minHeight: 32,
@@ -389,8 +390,8 @@ const SortableFlashcardItem: React.FC<SortableFlashcardItemProps> = ({
               <MoreVertIcon sx={{ fontSize: 20 }} />
             </IconButton>
           </Tooltip>
-        </Box>
-      </Box>
+        }
+      />
 
       <Menu
         anchorEl={menuAnchor}
@@ -900,12 +901,32 @@ const SubCategoryPage: React.FC = () => {
       </Fab>
 
       {/* ── Create / Edit dialog ── */}
-      <Dialog open={isDialogOpen} onClose={closeDialog} fullWidth maxWidth="sm">
+      <Dialog
+        open={isDialogOpen}
+        onClose={closeDialog}
+        fullWidth
+        maxWidth="sm"
+        slotProps={{
+          paper: {
+            // Clip horizontal overflow only — do not set maxWidth here; it overrides maxWidth="sm".
+            sx: { overflowX: "hidden" },
+          },
+        }}
+      >
         <DialogTitle className="flex items-center justify-between py-3 px-3">
           {editingCard ? t('subcategory.editFlashcard') : t('subcategory.newFlashcard')}
           <IconButton aria-label={t('common.close')} onClick={closeDialog} size="small"><CloseIcon /></IconButton>
         </DialogTitle>
-        <DialogContent className="px-3 pb-2 flex flex-col gap-4" dividers>
+        <DialogContent
+          className="px-3 pb-2 flex flex-col gap-4"
+          dividers
+          sx={{
+            minWidth: 0,
+            overflowX: "hidden",
+            overflowY: "auto",
+            "& .MuiFormControl-root": { minWidth: 0, maxWidth: "100%" },
+          }}
+        >
           <SideEditor
             key={`front-${editingCard?.id ?? "new"}`}
             label={t('subcategory.front')}

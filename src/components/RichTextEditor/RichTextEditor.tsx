@@ -100,7 +100,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   if (!editor) return null;
 
   return (
-    <Box>
+    <Box sx={{ width: '100%', minWidth: 0, maxWidth: '100%' }}>
       <Box
         sx={{
           border: '1px solid',
@@ -211,6 +211,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             py: 1,
             minHeight: 90,
             maxHeight: 180,
+            overflowX: 'hidden',
             overflowY: 'auto',
           }}
         >

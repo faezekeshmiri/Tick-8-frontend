@@ -24,6 +24,10 @@ interface FlashcardProps {
   front: FlashcardSideContent;
   back: FlashcardSideContent;
   color?: string;
+  /** Optional corner controls rendered on BOTH sides (and flip with the card). */
+  topLeftAdornment?: React.ReactNode;
+  /** Optional corner controls rendered on BOTH sides (and flip with the card). */
+  topRightAdornment?: React.ReactNode;
   /**
    * When provided, initializes the interactive Tick 8 strip from backend (Phase 1 = front, Phase 2 = back).
    * User can still edit marks (toggle tick/x, remove). remembered → tick, forgot → x.
@@ -145,6 +149,8 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
 
   const progressMarks = !isLegacy(props) && 'progressMarks' in props ? (props as FlashcardProps).progressMarks : undefined;
   const onMarksChange = !isLegacy(props) && 'onMarksChange' in props ? (props as FlashcardProps).onMarksChange : undefined;
+  const topLeftAdornment = !isLegacy(props) && 'topLeftAdornment' in props ? (props as FlashcardProps).topLeftAdornment : undefined;
+  const topRightAdornment = !isLegacy(props) && 'topRightAdornment' in props ? (props as FlashcardProps).topRightAdornment : undefined;
   const showFooter = !isStudyMode;
   const userDidEditRef = useRef(false);
 
@@ -317,6 +323,16 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
             gap: 0.5, px: 3, py: 4,
           }}
         >
+          {topLeftAdornment && (
+            <Box sx={{ position: 'absolute', top: 8, insetInlineStart: 8, zIndex: 3 }}>
+              {topLeftAdornment}
+            </Box>
+          )}
+          {topRightAdornment && (
+            <Box sx={{ position: 'absolute', top: 8, insetInlineEnd: 8, zIndex: 3 }}>
+              {topRightAdornment}
+            </Box>
+          )}
           <Box onClick={() => !isStudyMode && setFlipped(true)} sx={{ cursor: isStudyMode ? 'default' : 'pointer', flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <SideContent content={frontContent} />
           </Box>
@@ -335,6 +351,16 @@ const Flashcard: React.FC<CombinedProps> = (props) => {
             gap: 0.5, px: 3, py: 4, borderRadius: 3,
           }}
         >
+          {topLeftAdornment && (
+            <Box sx={{ position: 'absolute', top: 8, insetInlineStart: 8, zIndex: 3 }}>
+              {topLeftAdornment}
+            </Box>
+          )}
+          {topRightAdornment && (
+            <Box sx={{ position: 'absolute', top: 8, insetInlineEnd: 8, zIndex: 3 }}>
+              {topRightAdornment}
+            </Box>
+          )}
           <Box onClick={() => !isStudyMode && setFlipped(false)} sx={{ cursor: isStudyMode ? 'default' : 'pointer', flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <SideContent content={backContent} inverted />
           </Box>
