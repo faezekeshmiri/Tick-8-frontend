@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -7,9 +7,17 @@ import {
   Typography,
   Skeleton,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  ToggleButton,
+  ToggleButtonGroup,
+  Snackbar,
 } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import ScheduleSendIcon from "@mui/icons-material/ScheduleSend";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +26,7 @@ import {
   getUpcomingReviews,
   getNextReviewDate,
   setProgressTicks,
+  postponeSession,
 } from "../api/study";
 import { listCategories } from "../api/categories";
 import { queryKeys } from "../api/queryKeys";
@@ -82,13 +91,44 @@ const Home: React.FC = () => {
     [ticksMutation]
   );
 
+  const [postponeOpen, setPostponeOpen] = useState(false);
+  const [postponeDays, setPostponeDays] = useState<number>(1);
+  const [snackMsg, setSnackMsg] = useState("");
+
+  const postponeMutation = useMutation({
+    mutationFn: (days: number) => postponeSession(days),
+    onSuccess: (data) => {
+      setPostponeOpen(false);
+      setSnackMsg(t('home.postponeSuccess', { count: data.postponed_count, days: postponeDays }));
+      queryClient.invalidateQueries({ queryKey: queryKeys.studyQueueWithCards() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.studyQueue() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.studyUpcoming() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.studyNextReviewDate() });
+    },
+    onError: (err) => {
+      setSnackMsg(extractErrorMessage(err, t('home.postponeFailed')));
+    },
+  });
+
   const error = listError ? extractErrorMessage(listError, t('home.failedToLoad')) : "";
 
   return (
     <Box sx={{ maxWidth: 1200, mx: "auto", px: 2, py: 3 }}>
-      <Typography variant="h5" fontWeight={600} sx={{ mb: 2 }}>
-        {t('home.todaysStudy')}
-      </Typography>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2 }}>
+        <Typography variant="h5" fontWeight={600}>
+          {t('home.todaysStudy')}
+        </Typography>
+        {!loading && items.length > 0 && (
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<ScheduleSendIcon />}
+            onClick={() => { setPostponeDays(1); setPostponeOpen(true); }}
+          >
+            {t('home.postpone')}
+          </Button>
+        )}
+      </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -219,6 +259,57 @@ const Home: React.FC = () => {
           </Button>
         </>
       )}
+
+      <Dialog
+        open={postponeOpen}
+        onClose={() => setPostponeOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>{t('home.postponeTitle')}</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+            {t('home.postponeDescription')}
+          </Typography>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {t('home.postponeDaysLabel')}
+          </Typography>
+          <ToggleButtonGroup
+            value={postponeDays}
+            exclusive
+            onChange={(_, val) => { if (val !== null) setPostponeDays(val); }}
+            sx={{ flexWrap: "wrap", gap: 0.5 }}
+          >
+            {[1, 2, 3, 5, 7, 14, 30].map((d) => (
+              <ToggleButton key={d} value={d} sx={{ minWidth: 48 }}>
+                {d}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+            {t('home.postponeHint', { days: postponeDays })}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPostponeOpen(false)}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => postponeMutation.mutate(postponeDays)}
+            disabled={postponeMutation.isPending}
+          >
+            {postponeMutation.isPending ? t('common.savingEllipsis') : t('home.postponeConfirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Snackbar
+        open={!!snackMsg}
+        autoHideDuration={4000}
+        onClose={() => setSnackMsg("")}
+        message={snackMsg}
+      />
     </Box>
   );
 };

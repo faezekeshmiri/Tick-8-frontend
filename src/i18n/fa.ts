@@ -153,6 +153,14 @@ const fa = {
       tomorrow: 'فردا',
       inDays: '{{count}} روز دیگر',
       browseCategories: 'مرور دسته‌بندی‌ها',
+      postpone: 'به تعویق انداختن',
+      postponeTitle: 'به تعویق انداختن جلسه امروز',
+      postponeDescription: 'تمام کارت‌های امروز به تاریخ جدید منتقل می‌شوند. تاریخ مرورهای آینده این کارت‌ها نیز جابه‌جا خواهد شد.',
+      postponeDaysLabel: 'به تعویق انداختن به مدت (روز)',
+      postponeHint: 'کارت‌ها به {{days}} روز دیگر منتقل می‌شوند.',
+      postponeConfirm: 'به تعویق بینداز',
+      postponeSuccess: '{{count}} کارت به مدت {{days}} روز به تعویق افتاد.',
+      postponeFailed: 'به تعویق انداختن ناموفق بود.',
     },
 
     // ── Categories ──

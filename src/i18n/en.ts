@@ -153,6 +153,14 @@ const en = {
       tomorrow: 'Tomorrow',
       inDays: 'In {{count}} days',
       browseCategories: 'Browse categories',
+      postpone: 'Postpone',
+      postponeTitle: 'Postpone today\u2019s session',
+      postponeDescription: 'All cards due today will be rescheduled. Future review dates for these cards will shift accordingly.',
+      postponeDaysLabel: 'Postpone by (days)',
+      postponeHint: 'Cards will be rescheduled to {{days}} day(s) from now.',
+      postponeConfirm: 'Postpone',
+      postponeSuccess: '{{count}} card(s) postponed by {{days}} day(s).',
+      postponeFailed: 'Failed to postpone session.',
     },
 
     // ── Categories ──

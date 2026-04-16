@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import type {
   NextReviewDateResponse,
+  PostponeResponse,
   QueueItemWithCard,
   RecordTickResponse,
   StudyCardResponse,
@@ -67,6 +68,11 @@ export const updateStudySettings = (data: {
 export const getSubcategoryProgress = (subId: number) =>
   apiClient
     .get<SubcategoryProgressResponse>(`/subcategories/${subId}/progress`)
+    .then((r) => r.data);
+
+export const postponeSession = (days: number) =>
+  apiClient
+    .post<PostponeResponse>('/study/postpone', { days })
     .then((r) => r.data);
 
 export const getSubcategoryCardProgress = (subId: number) =>

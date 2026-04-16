@@ -93,6 +93,10 @@ export interface CardProgressItem {
   marks: TickMark[];
 }
 
+export interface PostponeResponse {
+  postponed_count: number;
+}
+
 export interface SubcategoryCardProgressResponse {
   card_progress: CardProgressItem[];
 }
